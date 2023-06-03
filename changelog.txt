@@ -1,0 +1,5 @@
+V0.1.0 (03.06.2023)
+- initial version
+- works for ATtinyX4 only on tzhe target side
+- on the server side, only an Arduino UNO has been tested
+- library should work for all supported chips.

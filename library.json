@@ -1,0 +1,16 @@
+{
+    "name": "avrCalibrate",
+    "version": "0.1.0",
+    "keywords": "calibration, internal reference voltage, MCU clock, OSCCAL",
+    "description": "Supports calibration of OSCCAL and internal reference voltage and supoorts setting them at startup",
+    "repository":
+    {
+	"type": "git",
+	"url": "https://github.com/felias-fogg/avrCalibrate.git"
+    },
+    "frameworks": "arduino",
+    "platforms":
+    [
+	"atmelavr",
+    ]
+}
