@@ -1,5 +1,11 @@
 V0.1.0 (03.06.2023)
 - initial version
-- works for ATtinyX4 only on tzhe target side
+- works for ATtinyX4 only on the target side
 - on the server side, only an Arduino UNO has been tested
 - library should work for all supported chips.
+
+V0.2.0 (03.06.2023)
+- added check in calibTarget for stopping at the OSCCAL boundaries
+- added a check for progress when changing OSCCAL value; if none (probably an XTAL), we stop
+- added ATTinyX5, ATtinyX61, and ATtiny1634
+- taking always 3 measurements and selecting median (still problems)
