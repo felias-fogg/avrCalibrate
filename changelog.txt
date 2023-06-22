@@ -9,3 +9,7 @@ V0.2.0 (03.06.2023)
 - added a check for progress when changing OSCCAL value; if none (probably an XTAL), we stop
 - added ATTinyX5, ATtinyX61, and ATtiny1634
 - taking always 3 measurements and selecting median (still problems)
+
+V0.3.0 (22.06.23)
+- using now stripped down I/O instead of TXOnlySerial (and saved 600
+bytes)

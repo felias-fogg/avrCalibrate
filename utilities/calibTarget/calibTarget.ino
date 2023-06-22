@@ -18,26 +18,34 @@
 // a fully calibrated clock will give us 10000 counts.
 
 
-#define VERSION "0.2.0" 
+#define VERSION "0.3.0" 
 
 #define TRUEMILLIVOLT 5021 // the true voltage measured in mV
 
-#include <TXOnlySerial.h>
-#include <util/delay.h>
 #include <EEPROM.h>
+#include <avr/pgmspace.h>
+#include <util/delay_basic.h>
+#include <util/delay.h>
+
+#define txpin SCK
+#define txdelay ((F_CPU / 1200)-15)/4 // means 1200 baud
+#define txbitmsk digitalPinToBitMask(txpin)
+#define txportreg portOutputRegister(digitalPinToPort(txpin))
+
+
+
+
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \
   && !defined(__AVR_ATtiny13__) // these do not support Vcc measuring
 #include <Vcc.h>
 #endif
 
-// The ATmega8 has a different nominal bandgap refernce voltage
+// The ATmega8 has a different nominal bandgap reference voltages
 #ifdef __AVR_ATmega8__ 
 #define DEFINTREF 1300
 #else
 #define DEFINTREF 1100
 #endif
-
-#define BAUD 1200
 
 #define FREQ_TIMEOUT_SEC 30 // timeout for frequency measurement (<640)
 #define MIN_MEASURE_CNT 200 // minimal number of frequency measurement before accept it as valid (<256)
@@ -117,9 +125,7 @@ unsigned int step = 0;
 unsigned startcount = 0;
 long intref, volt;
 byte osccal;
-
-
-TXOnlySerial mySerial(SCK); // serial output over the SCK line
+char valstr[16];
 
 
 ISR(PCINT_vect)
@@ -139,6 +145,9 @@ ISR(TIMER_COMPA_vect)
 
 void setup(void)
 {
+  digitalWrite(txpin, HIGH);
+  pinMode(txpin, OUTPUT);
+
   TIMSK = 0; // disable millis interrupt
   TCCR0A = 0; // normal operation
   TCCR0B = (F_CPU == 8000000) ? 0b010 : 0b001; // WGM02=0, prescaler == 8 if 8 MHz, otherwise =1
@@ -146,9 +155,8 @@ void setup(void)
   TIMSK = (1 << OCIE0A); // enable interrupt for reaching OCRA value
   GIMSK = (1 << PCIE); // enable only PCIs 
   PCMSK = (1 << PCINT); // enable only PCI on frequency input pin
-  mySerial.begin(BAUD);
   _delay_ms(2000);
-  mySerial.println(F("\n\rcalibTarget Version " VERSION));
+  txstr(F("\n\rcalibTarget Version " VERSION "\n\r"));
   stage = FREQ;
 }
 
@@ -156,25 +164,24 @@ void loop(void)
 {
   if (stage == FREQ) {
     if (F_CPU != 8000000 && F_CPU != 1000000) { // unsupported frequency
-      mySerial.println(F("Unsupported MCU clock frequency"));
+      txstr(F("Unsupported MCU clock frequency\n\r"));
       error = FREQ_ERROR;
       stage = VOLTREF;
       return;
     }      
     if (++freqloop > FREQ_TIMEOUT_SEC * 100) { // more than 30 seconds
-      mySerial.println(F("Timeout: could not calibrate MCU clock"));
+      txstr(F("Timeout: could not calibrate MCU clock\n\r"));
       error = FREQ_ERROR;
       stage = VOLTREF;
       return;
     }
     if (valid > MIN_MEASURE_CNT) {
       if (dir == STOP) {
-	mySerial.print(F("Final OSCCAL: 0x"));
-	mySerial.println(OSCCAL,HEX);
+	txstr(F("Final OSCCAL: 0x"));
+	txstr(itoa(OSCCAL,valstr,16));
+	txstr(F("\n\r"));
 	osccal = OSCCAL;
 	EEPROM.put(E2END-2, osccal);
-	mySerial.print(F("OSCCAL value stored in EEPROM at: 0x"));
-	mySerial.println(E2END-2,HEX);
 	stage = VOLTREF;
 	return;
       }
@@ -186,16 +193,18 @@ void loop(void)
 	return; // unreasonable values
       }
       if (startcount == 0) startcount = currcount;
-      mySerial.print(F("OSCCAL: 0x"));
-      mySerial.print(OSCCAL,HEX);
-      mySerial.print(F(",  ticks: "));
-      mySerial.println(currcount);
+      txstr(F("OSCCAL: 0x"));
+      txstr(itoa(OSCCAL,valstr,16));
+      txstr(F(",  ticks: "));
+      txstr(itoa(currcount,valstr,10));
+      txstr(F("\n\r"));
       if (step >= CHECK_AFTER_STEPS) {
 	if ((dir == UP && currcount - startcount < MIN_CHANGE_PER_STEP * step) ||
 	    (dir == DOWN && startcount - currcount < MIN_CHANGE_PER_STEP * step)) {
 	  error = FREQ_ERROR;
 	  stage = VOLTREF;
-	  mySerial.println(F("Not enough change detected. We stop changing OSCCAL."));
+	  txstr(F("Not enough change detected. We stop changing OSCCAL."));
+	  txstr(F("\n\r"));
 	  return;
 	}
       }
@@ -223,7 +232,8 @@ void loop(void)
       } else if (currcount <= EXPECTED_TICKS) {
 	minusdiff = EXPECTED_TICKS - currcount;
 	if (OSCCAL == 0xFF) {
-	  mySerial.println(F("OSCCAL limit reached"));
+	  txstr(F("OSCCAL limit reached"));
+	  txstr(F("\n\r"));
 	  error = FREQ_ERROR;
 	  stage = VOLTREF;
 	  return;
@@ -237,34 +247,34 @@ void loop(void)
   } else if (stage == VOLTREF) {
 #if defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny4313__) \
     || defined(__AVR_ATtiny13__) // these do not support Vcc measuring
-    mySerial.println(F("MCU does not support measuring Vcc"));
+    txstr(F("MCU does not support measuring Vcc"));
+    txstr(F("\n\r"));
     error |= VOLTREF_ERROR;
     stage = FINISH;
 #else
     volt = Vcc::measure(1000,DEFINTREF);
-    mySerial.print(F("True voltage (mV): "));
-    mySerial.println(TRUEMILLIVOLT);
-    mySerial.print(F("Measured (mV):     "));
-    mySerial.println(volt);
+    txstr(F("True voltage (mV): "));
+    txstr(itoa(TRUEMILLIVOLT,valstr,10));
+    txstr(F("\n\r"));
+    txstr(F("Measured (mV):     "));
+    txstr(itoa(volt,valstr,10));
     intref = (((DEFINTREF * 1023L) / volt) * TRUEMILLIVOLT) / 1023L;
-    mySerial.print(F("Correct intref value: "));
-    mySerial.println(intref);
+    txstr(F("Correct intref value: "));
+    txstr(itoa(intref,valstr,10));
     EEPROM.put(E2END-1,intref);
-    mySerial.print(F("INTREF value stored in EEPROM at: 0x"));
-    mySerial.println(E2END-1,HEX);
     stage = FINISH;
 #endif
     return;
   } else if (stage == FINISH) {
     if (error == 0) {
-      mySerial.println(F("...done!"));
+      txstr(F("...done!\n\r"));
       while (1);
     } else {
-      mySerial.println(F("...not completely successful:"));
+      txstr(F("...not completely successful:\n\r"));
       if (error & FREQ_ERROR)
-	mySerial.println(F(" - OSCCAL calibration failed"));
+	txstr(F(" - OSCCAL calibration failed\n\r"));
       if (error & VOLTREF_ERROR)
-	mySerial.println(F(" - internal reference voltage calibration failed"));
+	txstr(F(" - internal reference voltage calibration failed\n\r"));
       while (1);
     }
   }
@@ -290,7 +300,7 @@ unsigned long getAvgCount(void)
     temp = getCount();
     if  (temp > EXPECTED_TICKS - MAX_DEVIATION && temp < EXPECTED_TICKS + MAX_DEVIATION)  {
       vals[i++] = temp;
-      //mySerial.print(F("val: ")), mySerial.println(temp);
+      //txstr(F("val: ")), mySerial.println(temp);
     }
   }
   if ((vals[0] <= vals[1] && vals[1] <= vals[2]) || (vals[0] >= vals[1] && vals[1] >= vals[2])) return vals[1];
@@ -300,7 +310,60 @@ unsigned long getAvgCount(void)
 
 void limitReached(void)
 {
-  mySerial.println(F("OSCCAL limit reached"));
+  txstr(F("OSCCAL limit reached\n\r"));
   error = FREQ_ERROR;
   stage = VOLTREF;
+}
+
+
+// I/O stuff
+
+
+void txchar(byte b) {
+  // By declaring these as local variables, the compiler will put them
+  // in registers _before_ disabling interrupts and entering the
+  // critical timing sections below, which makes it a lot easier to
+  // verify the cycle timings
+  volatile byte *reg = txportreg;
+  unsigned int delay = txdelay;
+  byte reg_mask = txbitmsk;
+  byte inv_mask = ~txbitmsk;
+  byte oldSREG = SREG;
+  cli();  // turn off interrupts for a clean txmit
+
+  // Write the start bit
+  *reg &= inv_mask;
+
+  _delay_loop_2(delay);
+
+  // Write each of the 8 bits
+  for (uint8_t i = 8; i > 0; --i)
+  {
+    if (b & 1) // choose bit
+      *reg |= reg_mask; // send 1
+    else
+      *reg &= inv_mask; // send 0
+
+    _delay_loop_2(delay);
+    b >>= 1;
+  }
+
+  // restore pin to natural state
+  *reg |= reg_mask;
+
+  SREG = oldSREG; // turn interrupts back on
+  _delay_loop_2(delay);
+}
+
+  
+void txstr(const char* s)
+{
+  while (*s) txchar(*s++);
+}
+
+void txstr(const __FlashStringHelper* f)
+{
+  char* s;
+  s=reinterpret_cast<PGM_P>(f);
+  while (pgm_read_byte(s)) txchar(pgm_read_byte(s++));
 }
