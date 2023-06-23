@@ -1,12 +1,12 @@
 // This sketch generates a 100 Hz frequency on an Arduino Uno/Nano/ProMini/Leornado/Mega (or similar)
 // open drain pin or pull-push pin (your choice!) using Timer1.
 
-#define VERSION "0.3.0"
+#define VERSION "0.4.0"
 
 #define PUSHPULL true
 
-#define FREQPIN MOSI
-#define TTYPIN SCK
+#define FREQPIN SCK
+#define TTYPIN MOSI
 
 
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega328__) || \
@@ -43,7 +43,7 @@ void setup(void)
 {
   Serial.begin(115200);
   ser.begin(1200);
-  Serial.println(F("\n\rcalibServer Version " VERSION));
+  Serial.println(F("\n\rcalibServer V " VERSION));
   Serial.println(F("Feedback from target board:"));
   TIMSK0 = 0; // stop the millis interrupt in order to avoid glitches
   // setup Timer1 in mode 11 

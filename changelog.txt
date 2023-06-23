@@ -13,3 +13,13 @@ V0.2.0 (03.06.2023)
 V0.3.0 (22.06.23)
 - using now stripped down I/O instead of TXOnlySerial (and saved 600
 bytes)
+
+V0.4.0 
+- switch to non-IRQ mode
+- corrected intref computation
+- minimized everything so that 2KByte MCUs can use the sketch (when
+  millis are disabled)
+- exchanged MOSI and SCK
+- use MISO if chip does not have SPI, otherwise MOSI (this is a bit
+  confusing) -> this fixed the unreliability problem (guess why)
+  
