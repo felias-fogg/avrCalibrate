@@ -1,11 +1,11 @@
 // This sketch generates a 100 Hz frequency on an Arduino Uno/Nano/ProMini/Leornado/Mega (or similar)
 // open drain pin or pull-push pin (your choice!) using Timer1.
 
-#define VERSION "0.4.0"
+#define VERSION "0.5.0"
 
-#define PUSHPULL true
+#define PUSHPULL false
 
-#define FREQPIN SCK
+#define FREQPIN MISO
 #define TTYPIN MOSI
 
 
@@ -49,11 +49,13 @@ void setup(void)
   // setup Timer1 in mode 11 
   TCCR1A = 0b11; // WGM11 = WGM10 = 1, no output
   TCCR1B = 0b10010; // WGM13=1, WGM12=0, prescaler = 8
-  OCR1A = F_CPU/3200-1;
+  OCR1A = F_CPU/320;
   TIMSK1 = (1 << OCIE1A);  // enable OCR1A interrupt
 #if PUSHPULL
   pinMode(FREQPIN, OUTPUT);
 #endif
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop(void)

@@ -17,21 +17,22 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "0.4.0" 
+#define VERSION "0.5.0" 
 
 #define TRUEMILLIVOLT 5007 // the true voltage measured in mV
-#define TRUEMILLIHZ 100000 // the true frequency in milli HZ
+#define TRUETICKS 100000 // the true number of micro secs between two negative edges
 
 #include <EEPROM.h>
 #include <avr/pgmspace.h>
 #include <util/delay_basic.h>
 #include <util/delay.h>
 
-#define FRQPIN SCK
 #ifdef SPIE // if chip has an SPI module
 #define TXPIN MOSI
+#define FRQPIN MISO
 #else
 #define TXPIN MISO
+#define FRQPIN MOSI
 #endif
 #define TXDELAY ((F_CPU / 1200)-15)/4 // means 1200 baud
 #define TXBITMSK digitalPinToBitMask(TXPIN)
@@ -45,8 +46,8 @@
 #endif
 
 #define TIMEOUT (10000UL*(F_CPU/1000000UL))
-#define SUCCTHRES 3 // number of consecutive measurements to accept a level change
-#define MIN_CHANGE 200
+#define SUCCTHRES 2 // number of consecutive measurements to accept a level change
+#define MIN_CHANGE 100
 
 
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \
@@ -64,16 +65,13 @@
 #define TOV TOV0
 #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
 #define TCNT TCNT0
-#define TIFR TIFR0
 #define TOV TOV0
 #elif defined(__AVR_ATtiny261__) || defined(__AVR_ATtiny261A__) || defined(__AVR_ATtiny461__) \
   || defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny861A__)
 #define TCNT TCNT0L
-#define TIFR TIFR0
 #define TOV TOV0
 #elif defined(__AVR_ATtiny1634__) 
 #define TCNT TCNT0
-#define TIFR TIFR0
 #define TOV TOV0
 #define OSCCAL OSCCAL0 // the chip has two OSCCAL regs, 0 is for ordinary clock 
 #else
@@ -85,12 +83,10 @@
 #endif
 
 unsigned long wait;
-long count;
 int dir = 0;
 char valstr[16];
-long ticks[3] = {0, 0, 0};
-
-
+long ticks[5];
+long count;
 
 void setup(void)
 {
@@ -98,7 +94,10 @@ void setup(void)
   _delay_ms(2000); // wait for serv er to start up
   digitalWrite(TXPIN, HIGH);
   pinMode(TXPIN, OUTPUT);
+  pinMode(FRQPIN, INPUT_PULLUP);
+#if FLASHEND >= 0x0800
   txstr(F("\n\rcalibTarget V" VERSION "\n\r"));
+#endif
   // setup regs (and stop millis interrupt)
   TIMSK = 0; // disable millis interrupt
   TCCR0A = 0; // normal operation
@@ -108,8 +107,6 @@ void setup(void)
 
   // calibrate VCC
   calVcc();
-
-  while (1);
 }
 
 void loop(void) { }
@@ -118,21 +115,32 @@ void calOSCCAL(void)
 {
   int dir = 1;
   byte osccal;
+  long mindiff = TRUETICKS;
+  int minix = 0;
 
+  for (byte i=0; i<5; i++) ticks[i] = 0;
   ticks[0] = measure();
   if (!ticksOK(ticks)) return;
-  if (ticks[0] > TRUEMILLIHZ) dir = -1;
+  if (ticks[0] > TRUETICKS) dir = -1;
   do {
     reportMeasurement();
-    for (byte i=2; i>0; i--) ticks[i] = ticks[i-1];
     OSCCAL = OSCCAL + dir;
-    _delay_ms(50); // let frequency change settle and wait for I/O being finished
+    shiftTicks();
     ticks[0] = measure();
     if (!ticksOK(ticks)) return;
-  } while ((ticks[0] < TRUEMILLIHZ && dir == 1 && OSCCAL != 0xFF) || (ticks[0] >= TRUEMILLIHZ && dir == -1 && OSCCAL != 0));
+  } while ((ticks[0] < TRUETICKS && dir == 1 && OSCCAL != 0xFF) || (ticks[0] >= TRUETICKS && dir == -1 && OSCCAL != 0));
   reportMeasurement();
-  if (abs(ticks[0] - TRUEMILLIHZ) > abs(ticks[1] - TRUEMILLIHZ)) 
-    OSCCAL = OSCCAL + -1*dir; // use previous OSCCAL value
+  shiftTicks();
+  OSCCAL = OSCCAL + dir;
+  ticks[0] = measure();
+  reportMeasurement();
+  for (byte i=0; i < 5; i++) {
+    if (mindiff > abs(ticks[i] - TRUETICKS)) {
+      minix = i;
+      mindiff = abs(ticks[i] - TRUETICKS);
+    }
+  }
+  OSCCAL = OSCCAL + -1*dir*minix;
   txstr(F("\n\rFinal OSCCAL: 0x"));
   txstr(itoa(OSCCAL,valstr,16));
   txnl();
@@ -141,19 +149,22 @@ void calOSCCAL(void)
   EEPROM.put(E2END-3, (byte)0);
 }
 
+void shiftTicks(void)
+{
+  for (byte i=4; i>0; i--) ticks[i] = ticks[i-1];
+}
 
 // perform measurement, i.e. count ten periods
 long measure(void)
 {
-  // wait for first falling edge
+  _delay_ms(100); // let frequency change settle and wait for I/O being finished
   TCCR0B = (F_CPU == 8000000) ? 0b010 : 0b001; // WGM02=0, prescaler == 8 if 8 MHz, otherwise =1
+  // wait for first falling edge
   if (!fallingEdge()) return -1; 
   count = 0;
   TCNT = 0;
   TIFR |= (1<<TOV);
-  for (byte i=0; i<10; i++) {
-    if (!fallingEdge()) return -1; 
-  }
+  if (!fallingEdge()) return -1; 
   TCCR0B = 0; // stop counting
   incIfTOV();
   count = count + TCNT;
@@ -191,14 +202,23 @@ bool waitTransTo(boolean level)
 }
 
 
-boolean ticksOK(long t[3])
+boolean ticksOK(long t[5])
 {
+  //return true; // for testing
   if (t[0] < 0) {
-    txstr(F("\n\rCalib. timeout"));
+#if FLASHEND >= 0x0800
+    txstr(F("\n\rOSCCAL calib. timeout\n\r"));
+#else
+    txstr("\n\rtimeout\n\r");
+#endif    
     return false;
   }
-  if ((abs(t[0]-t[1]) < MIN_CHANGE) && (abs(t[1]-t[2]) < MIN_CHANGE)) {
-    txstr(F("\n\rCalib. impossible"));
+  if ((abs(t[0]-t[1]) < MIN_CHANGE) && (abs(t[1]-t[2]) < MIN_CHANGE) && (t[2] != 0)) {
+#if FLASHEND >= 0x0800
+    txstr(F("\n\rOSCCAL calib. impossible\n\r"));
+#else
+    txstr("\n\rNo change!\n\r");
+#endif    
     return false;
   }
   return true;
@@ -206,7 +226,11 @@ boolean ticksOK(long t[3])
 
 void reportMeasurement(void)
 {
+#if FLASHEND >= 0x0800
   txstr(F("\n\rOSCCAL: 0x"));
+#else
+  txstr("0x");
+#endif
   txstr(itoa(OSCCAL,valstr,16));
   txstr(F(",  ticks: "));
   txstr(ltoa(ticks[0],valstr,10));
