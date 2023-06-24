@@ -24,12 +24,16 @@ V0.4.0
   confusing) -> this fixed the unreliability problem (guess why)
   
 V0.5.0
-- use one additional OSCCAL value after crossing the treshold
+- check one additional OSCCAL value after crossing the treshold
   because of pseudo-monotonicity
 - changed FRQPIN in calibTarget to INPUT_PULLUP and set PUSHPULL in
   calibServer to false, i.e. , it is now open collector
 - use now MOSI and MISO, since SCK is used for the LED_BUILTIN on the
   UNO
 - changed to 10 Hz
-- tweaked outputs so that it can run on 2K MCUs (less wordy, though)
+- tweaked outputs so that it can run on 2K MCUs (less wordy, though),
+  and one needs to disable the millis interrupt
+
+V0.5.1
+- adapted documentation
 

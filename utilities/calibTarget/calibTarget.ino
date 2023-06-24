@@ -17,9 +17,9 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "0.5.0" 
+#define VERSION "0.5.1" 
 
-#define TRUEMILLIVOLT 5007 // the true voltage measured in mV
+#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUETICKS 100000 // the true number of micro secs between two negative edges
 
 #include <EEPROM.h>
@@ -55,8 +55,9 @@
 #include <Vcc.h>
 #endif
 
-
-#if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny24A__) || defined(__AVR_ATtiny44__) \
+#if defined(__AVR_ATtiny43U__)
+#error "Unsupported MCU"
+#elif defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny24A__) || defined(__AVR_ATtiny44__) \
   || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny84A__)  \
   || defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__)
 #define TIMSK TIMSK0
@@ -70,6 +71,8 @@
   || defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny861A__)
 #define TCNT TCNT0L
 #define TOV TOV0
+#elif defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny167__)
+#error "Unsupported MCU"
 #elif defined(__AVR_ATtiny1634__) 
 #define TCNT TCNT0
 #define TOV TOV0
@@ -229,7 +232,7 @@ void reportMeasurement(void)
 #if FLASHEND >= 0x0800
   txstr(F("\n\rOSCCAL: 0x"));
 #else
-  txstr("0x");
+  txstr("\n\r0x");
 #endif
   txstr(itoa(OSCCAL,valstr,16));
   txstr(F(",  ticks: "));
@@ -243,12 +246,26 @@ void calVcc(void)
   txstr(F("MCU does not support measuring Vcc\n\r"));
 #else
   long intref, volt, controlvolt;
-  volt = Vcc::measure(1000,DEFINTREF);
+  volt = Vcc::measure(100,DEFINTREF);
 #if FLASHEND >= 0x800
   txstr(F("\n\rTrue voltage (mV): "));
   txstr(itoa(TRUEMILLIVOLT,valstr,10));
   txstr(F("\n\rMeasured with default intref (mV): "));
   txstr(itoa(volt,valstr,10));
+  txnl();
+  volt = Vcc::measure(100,DEFINTREF);
+  txstr(itoa(volt,valstr,10));
+  txnl();
+  volt = Vcc::measure(100,DEFINTREF);
+  txstr(itoa(volt,valstr,10));
+  txnl();
+  volt = Vcc::measure(100,DEFINTREF);
+  txstr(itoa(volt,valstr,10));
+  txnl();
+  volt = Vcc::measure(100,DEFINTREF);
+  txstr(itoa(volt,valstr,10));
+  txnl();
+    
 #endif
   intref = ((long)(DEFINTREF) * (long)(TRUEMILLIVOLT)) / volt;
   txstr(F("\n\rIntref: "));
