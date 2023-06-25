@@ -1,7 +1,7 @@
 // This sketch generates a 100 Hz frequency on an Arduino Uno/Nano/ProMini/Leornado/Mega (or similar)
 // open drain pin or pull-push pin (your choice!) using Timer1.
 
-#define VERSION "0.5.1"
+#define VERSION "0.5.2"
 
 #define PUSHPULL false
 

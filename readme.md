@@ -52,7 +52,7 @@ As targets, it is planned to support the following MCUs (boldface ones are actua
 * __ATtiny25__, __ATtiny45__, __ATtiny85__
 * ATtiny26
 * __ATtiny261(A)__, __ATtiny461(A)__, __ATtiny861(A)__
-* ATtiny87, ATtiny167
+* __ATtiny87__, __ATtiny167__
 * ATtiny828
 * ATtiny48, ATtiny88
 * __ATtiny1634__

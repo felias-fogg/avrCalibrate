@@ -14,7 +14,7 @@ V0.3.0 (22.06.23)
 - using now stripped down I/O instead of TXOnlySerial (and saved 600
 bytes)
 
-V0.4.0 
+V0.4.0 (23.06.2023)
 - switch to non-IRQ mode
 - corrected intref computation
 - minimized everything so that 2KByte MCUs can use the sketch (when
@@ -23,7 +23,7 @@ V0.4.0
 - use MISO if chip does not have SPI, otherwise MOSI (this is a bit
   confusing) -> this fixed the unreliability problem (guess why)
   
-V0.5.0
+V0.5.0 (23.06.2023)
 - check one additional OSCCAL value after crossing the treshold
   because of pseudo-monotonicity
 - changed FRQPIN in calibTarget to INPUT_PULLUP and set PUSHPULL in
@@ -34,6 +34,18 @@ V0.5.0
 - tweaked outputs so that it can run on 2K MCUs (less wordy, though),
   and one needs to disable the millis interrupt
 
-V0.5.1
+V0.5.1 (24.06.2023)
 - adapted documentation
+
+V0.5.2 (25.06.2023)
+- thrown out the 4e additional voltage measurements
+- added back to use 1000 measurements for computing modified intref
+- added t87/t167
+- changed digital filter for determining edge back to use 3
+  consecutive measurements
+- use 10000 measurements to determine initial voltage before
+  calibration
+
+
+
 

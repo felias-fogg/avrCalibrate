@@ -17,7 +17,7 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "0.5.1" 
+#define VERSION "0.5.2" 
 
 #define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUETICKS 100000 // the true number of micro secs between two negative edges
@@ -46,7 +46,7 @@
 #endif
 
 #define TIMEOUT (10000UL*(F_CPU/1000000UL))
-#define SUCCTHRES 2 // number of consecutive measurements to accept a level change
+#define SUCCTHRES 3 // number of consecutive measurements to accept a level change
 #define MIN_CHANGE 100
 
 
@@ -72,7 +72,10 @@
 #define TCNT TCNT0L
 #define TOV TOV0
 #elif defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny167__)
-#error "Unsupported MCU"
+#define TIMSK TIMSK0
+#define TCNT TCNT0
+#define TIFR TIFR0
+#define TOV TOV0
 #elif defined(__AVR_ATtiny1634__) 
 #define TCNT TCNT0
 #define TOV TOV0
@@ -216,7 +219,7 @@ boolean ticksOK(long t[5])
 #endif    
     return false;
   }
-  if ((abs(t[0]-t[1]) < MIN_CHANGE) && (abs(t[1]-t[2]) < MIN_CHANGE) && (t[2] != 0)) {
+  if ((abs(t[0]-t[1]) < MIN_CHANGE) && (abs(t[1]-t[2]) < MIN_CHANGE)) {
 #if FLASHEND >= 0x0800
     txstr(F("\n\rOSCCAL calib. impossible\n\r"));
 #else
@@ -246,23 +249,11 @@ void calVcc(void)
   txstr(F("MCU does not support measuring Vcc\n\r"));
 #else
   long intref, volt, controlvolt;
-  volt = Vcc::measure(100,DEFINTREF);
+  volt = Vcc::measure(10000,DEFINTREF);
 #if FLASHEND >= 0x800
   txstr(F("\n\rTrue voltage (mV): "));
   txstr(itoa(TRUEMILLIVOLT,valstr,10));
   txstr(F("\n\rMeasured with default intref (mV): "));
-  txstr(itoa(volt,valstr,10));
-  txnl();
-  volt = Vcc::measure(100,DEFINTREF);
-  txstr(itoa(volt,valstr,10));
-  txnl();
-  volt = Vcc::measure(100,DEFINTREF);
-  txstr(itoa(volt,valstr,10));
-  txnl();
-  volt = Vcc::measure(100,DEFINTREF);
-  txstr(itoa(volt,valstr,10));
-  txnl();
-  volt = Vcc::measure(100,DEFINTREF);
   txstr(itoa(volt,valstr,10));
   txnl();
     
@@ -273,7 +264,8 @@ void calVcc(void)
   controlvolt = Vcc::measure(1000,intref);
 #if FLASHEND >= 0x800
   txstr(F("\n\rMeasured (mV):     "));
-  txstr(itoa(controlvolt,valstr,10));  
+  txstr(itoa(controlvolt,valstr,10));
+  txstr(F("\n\r...done"));
 #endif
   txnl();
   EEPROM.put(E2END-1,intref);
