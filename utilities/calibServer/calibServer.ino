@@ -1,24 +1,18 @@
 // This sketch generates a 100 Hz frequency on an Arduino Uno/Nano/ProMini/Leornado/Mega (or similar)
 // open drain pin or pull-push pin (your choice!) using Timer1.
 
-#define VERSION "0.5.2"
+#define VERSION "0.5.3"
 
 #define PUSHPULL false
 
 #define FREQPIN MISO
 #define TTYPIN MOSI
 
-
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega328__) || \
-    defined(__AVR_ATmega168P__) || defined(__AVR_ATmega168__) || \
-    defined (__AVR_ATmega32U4__) || \
-    defined(__AVR_ATmega1284P__) ||  defined(__AVR_ATmega1284__) || \
-    defined(__AVR_ATmega644P__) ||  defined(__AVR_ATmega644__) || \
-    defined(__AVR_ATmega324P__) ||  defined(__AVR_ATmega324__) || \
-    defined(__AVR_ATmega164P__) ||  defined(__AVR_ATmega164__) || \
-    defined(__AVR_ATmega2560__)
+#if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_DUEMILANOVE) || defined(ARDUINO_AVR_NANO) \
+  || defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_LEONARDO) \
+  || defined(ARDUINO_AVR_PRO)
 #else
-#error "Unsupported MCU type"
+#error "Board not supported"
 #endif
 
 #include <SoftwareSerial.h>

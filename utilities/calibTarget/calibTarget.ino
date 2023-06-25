@@ -17,12 +17,13 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "0.5.2" 
+#define VERSION "0.5.3" 
 
-#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
+//#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
+#define TRUEMILLIVOLT 5003 // the true voltage measured in mV
 #define TRUETICKS 100000 // the true number of micro secs between two negative edges
 
-#include <EEPROM.h>
+#include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 #include <util/delay_basic.h>
 #include <util/delay.h>
@@ -57,28 +58,60 @@
 
 #if defined(__AVR_ATtiny43U__)
 #error "Unsupported MCU"
+#elif defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny4313__)
+#define TCNT TCNT0
+#define TOV TOV0
+#define TCCR0CS TCCR0B
 #elif defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny24A__) || defined(__AVR_ATtiny44__) \
-  || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny84A__)  \
-  || defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__)
+  || defined(__AVR_ATtiny44A__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny84A__)  
 #define TIMSK TIMSK0
 #define TCNT TCNT0
 #define TIFR TIFR0
 #define TOV TOV0
+#define TCCR0CS TCCR0B
+#elif defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__)
+#define TIMSK TIMSK0
+#define TCNT TCNT0
+#define TIFR TIFR0
+#define TOV TOV0
+#define TCCR0CS TCCR0B
+#define OSCCAL OSCCAL0
 #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
 #define TCNT TCNT0
 #define TOV TOV0
+#elif defined(__AVR_ATtiny26__)
+#define TCNT TCNT0
+#define TOV TOV0
+#define TCCR0A TCCR0
+#define TCCR0CS TCCR0
 #elif defined(__AVR_ATtiny261__) || defined(__AVR_ATtiny261A__) || defined(__AVR_ATtiny461__) \
-  || defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny861A__)
+  || defined(__AVR_ATtiny461A__) || defined(__AVR_ATtiny861__) || defined(__AVR_ATtiny861A__) 
 #define TCNT TCNT0L
 #define TOV TOV0
+#define TCCR0CS TCCR0B
 #elif defined(__AVR_ATtiny87__) || defined(__AVR_ATtiny167__)
 #define TIMSK TIMSK0
 #define TCNT TCNT0
 #define TIFR TIFR0
 #define TOV TOV0
+#define TCCR0CS TCCR0B
+#elif defined(__AVR_ATtiny48__) || defined(__AVR_ATtiny88__)
+#define TIMSK TIMSK0
+#define TCNT TCNT0
+#define TIFR TIFR0
+#define TOV TOV0
+#define TCCR0CS TCCR0A
+#elif defined(__AVR_ATtiny828__)
+#define TIMSK TIMSK0
+#define TCNT TCNT0
+#define TIFR TIFR0
+#define TOV TOV0
+#define TCCR0CS TCCR0B
+#define OSCCAL OSCCAL0
 #elif defined(__AVR_ATtiny1634__) 
 #define TCNT TCNT0
 #define TOV TOV0
+#define TCCR0CS TCCR0B
 #define OSCCAL OSCCAL0 // the chip has two OSCCAL regs, 0 is for ordinary clock 
 #else
 #error "Unsupported MCU"
@@ -108,6 +141,8 @@ void setup(void)
   TIMSK = 0; // disable millis interrupt
   TCCR0A = 0; // normal operation
 
+  eeprom_write_dword((unsigned long *)E2END-3, 0xFFFFFFFF);
+  
   // calibrate OSCCAL
   calOSCCAL();
 
@@ -151,8 +186,8 @@ void calOSCCAL(void)
   txstr(itoa(OSCCAL,valstr,16));
   txnl();
   osccal = OSCCAL;
-  EEPROM.put(E2END-2, osccal);
-  EEPROM.put(E2END-3, (byte)0);
+  eeprom_write_byte((byte *)E2END, osccal);
+  eeprom_write_byte((byte *)E2END-1, 0);
 }
 
 void shiftTicks(void)
@@ -164,14 +199,14 @@ void shiftTicks(void)
 long measure(void)
 {
   _delay_ms(100); // let frequency change settle and wait for I/O being finished
-  TCCR0B = (F_CPU == 8000000) ? 0b010 : 0b001; // WGM02=0, prescaler == 8 if 8 MHz, otherwise =1
+  TCCR0CS = (F_CPU == 8000000) ? 0b010 : 0b001; // WGM02=0, prescaler == 8 if 8 MHz, otherwise =1
   // wait for first falling edge
   if (!fallingEdge()) return -1; 
   count = 0;
   TCNT = 0;
   TIFR |= (1<<TOV);
   if (!fallingEdge()) return -1; 
-  TCCR0B = 0; // stop counting
+  TCCR0CS = 0; // stop counting
   incIfTOV();
   count = count + TCNT;
   return count;
@@ -210,7 +245,6 @@ bool waitTransTo(boolean level)
 
 boolean ticksOK(long t[5])
 {
-  //return true; // for testing
   if (t[0] < 0) {
 #if FLASHEND >= 0x0800
     txstr(F("\n\rOSCCAL calib. timeout\n\r"));
@@ -219,7 +253,7 @@ boolean ticksOK(long t[5])
 #endif    
     return false;
   }
-  if ((abs(t[0]-t[1]) < MIN_CHANGE) && (abs(t[1]-t[2]) < MIN_CHANGE)) {
+  if ((abs(t[0]-t[1]) < MIN_CHANGE) && (abs(t[1]-t[2]) < MIN_CHANGE) && (abs(t[0]-t[2]) < MIN_CHANGE)) {
 #if FLASHEND >= 0x0800
     txstr(F("\n\rOSCCAL calib. impossible\n\r"));
 #else
@@ -246,10 +280,10 @@ void calVcc(void)
 {
 #if defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny4313__) \
   || defined(__AVR_ATtiny13__) // these do not support Vcc measuring
-  txstr(F("MCU does not support measuring Vcc\n\r"));
+  txstr(F("\n\rMCU does not support measuring Vcc\n\r"));
 #else
   long intref, volt, controlvolt;
-  volt = Vcc::measure(10000,DEFINTREF);
+  volt = Vcc::measure(2000,DEFINTREF);
 #if FLASHEND >= 0x800
   txstr(F("\n\rTrue voltage (mV): "));
   txstr(itoa(TRUEMILLIVOLT,valstr,10));
@@ -262,13 +296,12 @@ void calVcc(void)
   txstr(F("\n\rIntref: "));
   txstr(itoa(intref,valstr,10));
   controlvolt = Vcc::measure(1000,intref);
-#if FLASHEND >= 0x800
+  //#if FLASHEND >= 0x800
   txstr(F("\n\rMeasured (mV):     "));
   txstr(itoa(controlvolt,valstr,10));
-  txstr(F("\n\r...done"));
-#endif
-  txnl();
-  EEPROM.put(E2END-1,intref);
+  txstr(F("\n\r...done\n\r"));
+  //#endif
+  eeprom_write_word((unsigned *)E2END-3,intref);
 #endif
 }
 

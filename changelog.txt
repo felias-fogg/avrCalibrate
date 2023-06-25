@@ -46,6 +46,20 @@ V0.5.2 (25.06.2023)
 - use 10000 measurements to determine initial voltage before
   calibration
 
+V0.5.3
+- added t441/t841
+- added t48/t88
+- added t828
+- added t26
+- changed back to 1000 measurements, but added a comment in the readme
+  that one should wait for a minute until the operating temperature
+  has stabilized or to run calibration until the values stabelize
+- changed EEPROM layout: E2END-3..E2END-2: intref value, E2END-1: 0 when
+  OSCCAL value is valid, E2END: OSCCAL value
+- changed from using the EEPROM class to using the AVR library
+  functions, which saves roughly 100 bytes (necessary for the 2K byte MCUs).
+- changed checks on processor to checks on board instead
+
 
 
 

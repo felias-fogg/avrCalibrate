@@ -13,11 +13,15 @@ The `avrCalibrate` library contains just one function, called `init`, that does 
 
 The predetermined calibration values can either be stored in EEPROM or can be provided as constant values. The tricky part is, of course, to determine these calibration values. For that purpose, two Arduino sketches are provided in the `utility` folder. `calibServer` is a sketch to be loaded on an ATmega328P or similar board that uses a ceramic resonator or crystal. It generates a reasonably accurate 10 Hz signal that is used to calibrate the `OSCCAL` value on the target board. The `calibTarget` sketch needs to be loaded to the target board using a programmer. Before you do that, you need to adjust the compile-time constant `TRUEMILLIVOLT` to the true supply voltage of the target board (which should be measured using an accurate Multimeter). You then need to connect the two boards using an ICSP cable (see below). After pressing the `RESET` button on the server board, which will also reset the target board, the calibrations process starts.
 
+The calibration process starts with the OSCCAL calibration by systematically changing the OSCCAL value and stopping once the best value has been determined. Afterwards, the correct internal reference voltage is determined. Note that both values are temperature dependent and should be performed in an environment similar to where the target board will be deployed. Furthermore, one should either give the MCU some time (1 minute) to reach its operating temperature or perform 5 or so calibration runs until the results stabilize (in particular the voltage calibration). 
+
 The calibration values will be stored in EEPROM in the last 4 bytes. The first byte is zero, if the stored OSCCAL value is valid. The second byte is the OSCCAL value to be loaded at startup. The final 2 bytes provide the internal reference voltage value. 
 
-If you want to use these values, you need to set the `EESAVE` fuse on the target board in order to make sure that the EEPROM is not cleared when you upload the next sketch. This can either be done using a decent fuse setting program such as AVRFuses on the Mac, by using an online tool such as [Engbedded Fuse Calculator](https://www.engbedded.com/fusecalc/) and avrdude, or by selecting this option under the tools menu, provided you use the [ATTinyCore](https://github.com/SpenceKonde/ATTinyCore). 
+### Using the calibration values
 
-Instead of using the EEPROM values, you can write down the values that are shown during the calibration process and feed them to the init method (see example sketches). This saves you from messing around with fuses, but works only, if you want to deploy just one board.
+If you want to use the values stored in EEPROM, you need to set the `EESAVE` fuse on the target board in order to make sure that the EEPROM is not cleared when you upload the next sketch. This can either be done using a decent fuse setting program such as AVRFuses on the Mac, by using an online tool such as [Engbedded Fuse Calculator](https://www.engbedded.com/fusecalc/) and avrdude, or by selecting the option `Save EEPROM` under the tools menu, provided you use the [ATTinyCore](https://github.com/SpenceKonde/ATTinyCore), and using the `Burn bootloader` from the `Tools` menu.
+
+Instead of using the EEPROM values, you can write down the values that are shown during the calibration process and feed them to the init method (see example sketches). This saves you from messing around with fuses, but works only if you want to deploy just one board.
 
 
 ### Hardware setup
@@ -34,31 +38,34 @@ Instead of connecting the pins individually, you may also build an ICSP cable, w
 
 ### Hardware requirements
 
-The following MCUs can be used on the server side (the tested ones are in boldface):
+The following boards can be used on the server side (the tested ones are in boldface):
 
-* __ATmega328P__, ATmega328, ATmega168P(A), ATmega168(A), ATmega88P(A), ATmega88(A) 
-* ATmega1284P, ATmega1284, ATmega644P, ATmega644, ATmega324P, ATmega324
-* ATmega2560
-* ATmega32U4
+* **Arduino UNO R3 (or similar)**,
+* Arduino Nano,
+* Arduino Pro Mini,
+* Arduino Mega(2560),
+* Arduino Leonardo.
 
-As mentioned above, their clock frequency should be supplied by a reasonable accurate ceramic resonator or, even better, by a quartz crystal. If using a resonator, you may want to measure the 10 Hz signal at the MISO pin for accuracy. If it is more than 0.5 % off, you can change the compile-time constant `TRUETICKS` in the `calibTarget` sketch.
+As mentioned above, their clock frequency should be supplied by a reasonable accurate ceramic resonator or, even better, by a quartz crystal. If using a resonator, you may want to measure the 10 Hz signal at the MISO pin for accuracy. If it is more than 0.5 % off, you should adjust the compile-time constant `TRUETICKS` in the `calibTarget` sketch.
 
-As targets, it is planned to support the following MCUs (boldface ones are actually supported already). On MCUs with only 2K bytes flash memory, the target sketch is less verbose than on the larger MCUs. With these MCUs, it is also necessary to disable the `millis`/`micros` code in order to save some flash memory. Otherwise the sketch is too large.
+As targets, it is planned to support the following MCUs (boldface ones are supported already). On MCUs with only 2K bytes flash memory, the target sketch is less verbose than on the larger MCUs. With these MCUs, it is also necessary to disable the `millis`/`micros` code in order to save some flash memory. Otherwise the sketch is too large.
 
-* ATtiny43U
-* ATtiny2313(A), ATtiny4313 (only `OSCCAL` calibration)
+* ~~ATtiny43U~~
+* **ATtiny2313(A)**, **ATtiny4313** (only `OSCCAL` calibration)
 * __ATtiny24(A)__, __ATtiny44(A)__, __ATtiny84(A)__
-* ATtiny441, ATtiny841
+* **ATtiny441**, **ATtiny841**
 * __ATtiny25__, __ATtiny45__, __ATtiny85__
-* ATtiny26
+* __ATtiny26__
 * __ATtiny261(A)__, __ATtiny461(A)__, __ATtiny861(A)__
 * __ATtiny87__, __ATtiny167__
-* ATtiny828
-* ATtiny48, ATtiny88
+* **ATtiny828**
+* **ATtiny48**, **ATtiny88**
 * __ATtiny1634__
 * ATmega48, ATmega48A, ATmega48PA, ATmega48PB, ATmega88, ATmega88A, ATmega88PA, Atmega88PB, ATmega168, ATmega168A, ATmega168PA, ATmega168PB, ATmega328, ATmega328P, ATmega328PB
 * ATmega324P, ATmega324, ATmega644P, ATmega644, ATmega1284P, ATmega1284
 * ATmega1280, ATmega2560
+
+The ATtiny43U board that I won does not deliver meaningful data when one tries to measure Vcc.
 
 ### Disclaimer
 This is still alpha software and some things might not work as advertised. 
