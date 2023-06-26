@@ -1,16 +1,18 @@
 // library for setting calibration values at setup
 #include <avrCalibrate.h>
 
-void avrCalibrate::init(byte osccal, int intref)
+void avrCalibrate::init(int osccal, int intref)
 {
-  if (osccal <= 0x7F) // only legal OSCCAL values!
+  if (osccal >= 0 && osccal <= 0xFF) // only legal OSCCAL values!
     OSCCAL = osccal;
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__)
-  if (intref > 0) // only legal values
+  if (intref >= 0) // only legal values
     Vcc::setIntref(intref);
+#endif
 }
 
 void avrCalibrate::init(void)
 {
-  init(eeprom_read_byte(E2END-2), (int)eeprom_read_word(E2END-1));
+  init(eeprom_read_byte((byte *)E2END-1) == 0 ? eeprom_read_byte((byte *)E2END) : NOOSCCAL,
+       (int)eeprom_read_word((* int)E2END-3));
 }

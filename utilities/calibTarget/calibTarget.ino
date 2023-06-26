@@ -17,7 +17,7 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "0.5.3" 
+#define VERSION "0.5.4" 
 
 //#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUEMILLIVOLT 5003 // the true voltage measured in mV
@@ -112,14 +112,30 @@
 #define TCNT TCNT0
 #define TOV TOV0
 #define TCCR0CS TCCR0B
-#define OSCCAL OSCCAL0 // the chip has two OSCCAL regs, 0 is for ordinary clock 
+#define OSCCAL OSCCAL0 // the chip has two OSCCAL regs, 0 is for ordinary clock
+#elif defined(__AVR_ATmega328__) || defined(__AVR_ATmega328P__) ||  defined(__AVR_ATmega328PB__) || \
+  defined (__AVR_ATmega168__) || defined (__AVR_ATmega168A__)  || defined (__AVR_ATmega168PA__) || \
+  defined (__AVR_ATmega168P__) || defined (__AVR_ATmega168PB__) ||	\
+  defined (__AVR_ATmega88__) || defined (__AVR_ATmega88A__) || defined (__AVR_ATmega88P__)  || \
+  defined (__AVR_ATmega88PA__) || defined (__AVR_ATmega88PB__) ||	\
+  defined (__AVR_ATmega48__) || defined (__AVR_ATmega48A__) || defined (__AVR_ATmega48P__) || \
+  defined (__AVR_ATmega48PA__)|| defined (__AVR_ATmega48PB__) || \
+  defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || \
+  defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || \
+  defined(__AVR_ATmega324__) || defined(__AVR_ATmega324A__) || defined(__AVR_ATmega324PA__) || \
+  defined(__AVR_ATmega324P__) || defined(__AVR_ATmega164__) || defined(__AVR_ATmega164A__) || \
+  defined(__AVR_ATmega164PA__) || defined(__AVR_ATmega164P__) || \
+  defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+  defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__) 
+#define TIMSK TIMSK0
+#define TCNT TCNT0
+#define TIFR TIFR0
+#define TOV TOV0
+#define TCCR0CS TCCR0B
 #else
 #error "Unsupported MCU"
 #endif
 
-#if (F_CPU != 8000000) && (F_CPU != 1000000) 
-  #error "Unsupported clock frequency. Only 1 MHz and 8 MHz are possible."
-#endif
 
 unsigned long wait;
 int dir = 0;
@@ -154,6 +170,15 @@ void loop(void) { }
 
 void calOSCCAL(void)
 {
+#if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
+  txstr(F("OSCCAL calibration not possible.\n\r"));
+  eeprom_write_byte((byte *)E2END, 0xFF);
+  eeprom_write_byte((byte *)E2END-1, 0xFF);  
+#elif (F_CPU != 8000000) && (F_CPU != 1000000) 
+  txstr(F("Unsupported clock frequency. Calibration only possible for 1 MHz and 8 MHz.\n\r"));
+  eeprom_write_byte((byte *)E2END, 0xFF);
+  eeprom_write_byte((byte *)E2END-1, 0xFF);
+#else  
   int dir = 1;
   byte osccal;
   long mindiff = TRUETICKS;
@@ -188,6 +213,7 @@ void calOSCCAL(void)
   osccal = OSCCAL;
   eeprom_write_byte((byte *)E2END, osccal);
   eeprom_write_byte((byte *)E2END-1, 0);
+#endif
 }
 
 void shiftTicks(void)
@@ -289,8 +315,6 @@ void calVcc(void)
   txstr(itoa(TRUEMILLIVOLT,valstr,10));
   txstr(F("\n\rMeasured with default intref (mV): "));
   txstr(itoa(volt,valstr,10));
-  txnl();
-    
 #endif
   intref = ((long)(DEFINTREF) * (long)(TRUEMILLIVOLT)) / volt;
   txstr(F("\n\rIntref: "));

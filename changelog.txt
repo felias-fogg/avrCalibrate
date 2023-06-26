@@ -58,8 +58,12 @@ V0.5.3
   OSCCAL value is valid, E2END: OSCCAL value
 - changed from using the EEPROM class to using the AVR library
   functions, which saves roughly 100 bytes (necessary for the 2K byte MCUs).
-- changed checks on processor to checks on board instead
+- calibServer: changed checks on processor to checks on board instead
 
-
-
+V0.5.4
+- fixed init method (legal values and EEPROM layout)
+- added ATmegaX8(P)(A)
+- added ATmegaX4(P)
+- added ATmega16, 32, 8535
+- added Pro Mini, Nano, and Mega(2560) as server boards
 

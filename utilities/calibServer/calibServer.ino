@@ -1,7 +1,7 @@
-// This sketch generates a 100 Hz frequency on an Arduino Uno/Nano/ProMini/Leornado/Mega (or similar)
-// open drain pin or pull-push pin (your choice!) using Timer1.
+// This sketch generates a 10 Hz signal on an Arduino Uno/Nano/ProMini/Leornado/Mega (or similar)
+// open drain pin using Timer1.
 
-#define VERSION "0.5.3"
+#define VERSION "0.5.4"
 
 #define PUSHPULL false
 
@@ -9,7 +9,7 @@
 #define TTYPIN MOSI
 
 #if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_DUEMILANOVE) || defined(ARDUINO_AVR_NANO) \
-  || defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_LEONARDO) \
+  || defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560)  \
   || defined(ARDUINO_AVR_PRO)
 #else
 #error "Board not supported"
@@ -35,6 +35,7 @@ ISR(TIMER1_COMPA_vect)
 
 void setup(void)
 {
+  while (!Serial);
   Serial.begin(115200);
   ser.begin(1200);
   Serial.println(F("\n\rcalibServer V " VERSION));
