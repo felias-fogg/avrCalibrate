@@ -1,5 +1,4 @@
 // This sketch uses the method of using the values stored in EEPROM
-
 // It will wait 10 seconds and then it will call in init
 
 #include <avrCalibrate.h>

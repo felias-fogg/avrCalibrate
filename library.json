@@ -1,6 +1,6 @@
 {
     "name": "avrCalibrate",
-    "version": "0.6.3",
+    "version": "1.0.0",
     "keywords": "calibration, internal reference voltage, MCU clock, OSCCAL",
     "description": "Supports calibration of OSCCAL and internal reference voltage and supoorts setting them at startup",
     "repository":
@@ -17,7 +17,7 @@
     [
 	{
 	    "name": "Vcc",
-	    "version": ""https://github.com/felias-fogg/Vcc.git"
+	    "version": ""https://github.com/felias-fogg/Vcc.git#2.2.0"
 	}
     ]
     

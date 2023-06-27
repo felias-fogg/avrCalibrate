@@ -1,14 +1,9 @@
 # AVR MCU Calibration
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
-[![Installation instructions](https://www.ardu-badge.com/badge/avrCalibrate.svg?)](https://www.ardu-badge.com/avrCalibrate)
-
-[![Build Status](https://github.com/felias-fogg/avrCalibrate/workflows/LibraryBuild/badge.svg)](https://github.com/felias-fogg/avrCalibrate/actions)
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)[![Installation instructions](https://www.ardu-badge.com/badge/avrCalibrate.svg?)](https://www.ardu-badge.com/avrCalibrate)[![Build Status](https://github.com/felias-fogg/avrCalibrate/workflows/LibraryBuild/badge.svg)](https://github.com/felias-fogg/avrCalibrate/actions)
 ![Hit Counter](https://visitor-badge.laobi.icu/badge?page_id=felias-fogg_avrCalibrate)
 
-This library contains just one function to set user calibration values in a (classic) AVR MCU and two sketches that can be used to determine the calibration values by connecting a target board with an Arduino UNO (or a similar board) using an ICSP cable.
+This library contains just one function to set user calibration values in a (classic) AVR MCU and two sketches that can be used to determine the calibration values by connecting a target board with an Arduino UNO (or a similar board) using an ICSP cable. It depends on the [*Vcc* library](https://github.com/felias-fogg/Vcc), which you need to install as well (using the library manager or download it from GitHub).
 
 ### Purpose
 
@@ -75,10 +70,10 @@ As targets, the following MCUs are supported. On MCUs with only 2K bytes flash m
 * ATtiny48, ATtiny88
 * ATtiny1634
 * ATmega48(P)(A/B), ATmega88(P)(A/B), ATmega168(P)(A/B), ATmega328(P)(B)
+* Atmega8(A)
 * ATmega324(P), ATmega644(P), ATmega1284(P),     
-* ATmega16, ATmega32, ATmega8535
+* ATmega8535, ATmega16, ATmega32
 * ATmega1280, ATmega2560
 * ATmega32U4, ATmega16U4 (only internal reference voltage calibration)
 
 The ATtiny43U board that I own does not deliver meaningful data when one tries to measure Vcc. For this reason, it is not supported. The ATtinyX23 do not have an ADC, so Vcc cannot be measured. Finally, for the USB-MCUs ATmegaXU4, I am not aware of any Arduino core that supports using the RC-oscillator. So, only internal reference voltage calibration is supported.
-

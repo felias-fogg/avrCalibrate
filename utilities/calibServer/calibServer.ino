@@ -2,7 +2,7 @@
 // open drain pin using Timer1. Additionally, it passes the 1200 baud output of a target board
 // to Serial.
 
-#define VERSION "0.6.3"
+#define VERSION "1.0.0"
 
 #define FREQPIN MISO
 #define TTYPIN SCK
