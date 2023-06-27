@@ -73,14 +73,14 @@ jobs:
           - MiniCore:avr:48:variant=modelPB
           - MiniCore:avr:8
           - MightyCore:avr:1284
-          # - MightyCore:avr:644
-          # - MightyCore:avr:324
-          # - MightyCore:avr:164
-          # - MightyCore:avr:32
-          # - MightyCore:avr:16
-          # - MightyCore:avr:8535
+          - MightyCore:avr:644
+          - MightyCore:avr:324
+          - MightyCore:avr:164
+          - MightyCore:avr:32
+          - MightyCore:avr:16
+          - MightyCore:avr:8535
           - MegaCore:avr:2560
-          # - MegaCore:avr:1280
+          - MegaCore:avr:1280
 
 
 
@@ -234,7 +234,35 @@ jobs:
             platform-url: https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
             sketches-exclude: calibServer
 
+          - arduino-boards-fqbn: MightyCore:avr:644
+            platform-url: https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MightyCore:avr:324
+            platform-url: https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MightyCore:avr:164
+            platform-url: https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MightyCore:avr:32
+            platform-url: https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MightyCore:avr:16
+            platform-url: https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MightyCore:avr:8535
+            platform-url: https://mcudude.github.io/MightyCore/package_MCUdude_MightyCore_index.json
+            sketches-exclude: calibServer
+
           - arduino-boards-fqbn: MegaCore:avr:2560
+            platform-url: https://mcudude.github.io/MegaCore/package_MCUdude_MegaCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MegaCore:avr:1280
             platform-url: https://mcudude.github.io/MegaCore/package_MCUdude_MegaCore_index.json
             sketches-exclude: calibServer
   
