@@ -1,5 +1,13 @@
 # AVR MCU Calibration
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+[![Installation instructions](https://www.ardu-badge.com/badge/avrCalibrate.svg?)](https://www.ardu-badge.com/avrCalibrate)
+
+[![Build Status](https://github.com/felias-fogg/avrCalibrate/workflows/LibraryBuild/badge.svg)](https://github.com/felias-fogg/avrCalibrate/actions)
+
+![Hit Counter](https://visitor-badge.laobi.icu/badge?page_id=felias-fogg_avrCalibrate)
+
 This library contains just one function to set user calibration values in a (classic) AVR MCU and two sketches that can be used to determine the calibration values by connecting a target board with an Arduino UNO (or a similar board) using an ICSP cable.
 
 ### Purpose

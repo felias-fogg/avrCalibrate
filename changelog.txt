@@ -46,7 +46,7 @@ V0.5.2 (25.06.2023)
 - use 10000 measurements to determine initial voltage before
   calibration
 
-V0.5.3
+V0.5.3 (25.06.2023)
 - added t441/t841
 - added t48/t88
 - added t828
@@ -60,14 +60,14 @@ V0.5.3
   functions, which saves roughly 100 bytes (necessary for the 2K byte MCUs).
 - calibServer: changed checks on processor to checks on board instead
 
-V0.5.4
+V0.5.4 (25.06.2023)
 - fixed init method (legal values and EEPROM layout)
 - added ATmegaX8(P)(A/B)
 - added ATmegaX4(P)
 - added ATmega16, 32, 8535
 - added Pro Mini, Nano, and Mega(2560) as server boards
 
-V0.6.0
+V0.6.0 (27.07.2023)
 - rearranged connections again
 - added a signal line that has to go low before the target sketch
   starts to calibrate; otherwise the calibration was overriden the
@@ -78,6 +78,8 @@ V0.6.0
   calibrate)
 - blocked "negative" chars in server sketch
 
-
-  
+V0.6.1 (27.07.2023)
+- added license (MIT)
+- fixed typos in readme
+- new workflows
 
