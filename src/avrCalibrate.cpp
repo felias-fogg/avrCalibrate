@@ -1,6 +1,10 @@
 // library for setting calibration values at setup
 #include <avrCalibrate.h>
 
+#if defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__) || defined(__AVR_ATtiny828__) || defined(__AVR_ATtiny1634__) 
+#define OSCCAL OSCCAL0
+#endif
+
 void avrCalibrate::init(int osccal,
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__)
 			int intref)

@@ -38,12 +38,12 @@ void setup(void)
   ser.print(F("Original Vcc measurement (mV): "));
   ser.println(Vcc::measure(100,DEFAULT_INTREF));
 #endif
-  avrCalibrate::init(OSCCAL+2, DEFAULT_INTREF-100);
+  avrCalibrate::init(OSCCAL+2, 1000);
   ser.print(F("New OSCCAL: 0x"));
   ser.println(OSCCAL,HEX);
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \
   && !defined(__AVR_ATtiny13__) // these do not support Vcc measuring
-  ser.print(F("New Vcc measurement (mV) with DEFAULT_INTREF-100: "));
+  ser.print(F("New Vcc measurement (mV) with intref=1000: "));
   ser.println(Vcc::measure(100));
 #endif
 }
