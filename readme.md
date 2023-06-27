@@ -13,9 +13,13 @@ If you want to use only one of the values, then you still could use this functio
 
 ### Calibration process
 
-The predetermined calibration values can either be stored in EEPROM or can be provided as constant values. The tricky part is, of course, to determine these calibration values. For that purpose, two Arduino sketches are provided in the `utility` folder. `calibServer` is a sketch to be loaded on an ATmega328P or similar board that uses a ceramic resonator or crystal. It generates a reasonably accurate 10 Hz signal that is used to calibrate the `OSCCAL` value on the target board. The `calibTarget` sketch needs to be loaded to the target board using a programmer. Before you do that, you need to adjust the compile-time constant `TRUEMILLIVOLT` to the true supply voltage of the target board (which should be measured using an accurate Multimeter). You then need to connect the two boards using an ICSP cable (see below). After pressing the `RESET` button on the server board, which will also reset the target board, the calibrations process starts.
+The predetermined calibration values can either be stored in EEPROM or can be provided as constant values. The tricky part is, of course, to determine these calibration values. For that purpose, two Arduino sketches are provided in the `utility` folder. The `calibTarget` sketch needs to be loaded to the target board using a programmer. Before you do that, you need to adjust the compile-time constant `TRUEMILLIVOLT` to the true supply voltage of the target board (which should be measured using an accurate Multimeter). Next you need to upload the `calibServer` sketch to an Arduino UNO or similar board that uses a ceramic resonator or crystal. It generates a reasonably accurate 10 Hz signal that is used to calibrate the `OSCCAL` value on the target board. 
 
-It starts with the OSCCAL calibration by systematically changing the OSCCAL value and stopping once the best value has been determined. Afterwards, the correct internal reference voltage is determined. Note that both values are temperature dependent and should be performed in an environment similar to where the target board will be deployed. Furthermore, one should either give the MCU some time (1 minute) to reach its operating temperature or perform 5 or so calibration runs until the results stabilize (in particular the voltage calibration). 
+You then need to connect the two boards using an ICSP cable (see below). Now open the monitor window and set the baud rate to 115200. After pressing the `RESET` button on the server board, which will also reset the target board, the calibration can be started by pressing a key. This could look like as in the following picture. 
+
+![](pics/calibServer.png)
+
+It starts with the OSCCAL calibration by systematically changing the OSCCAL value and stopping once the best value (close to 100000) has been determined. Afterwards, the correct internal reference voltage is determined. Note that both values are temperature dependent and should be performed in an environment similar to where the target board will be deployed. Furthermore, one should either give the MCU some time (1 minute) to reach its operating temperature or perform 5 or so calibration runs until the results stabilize (in particular the voltage calibration). 
 
 The calibration values will be stored in EEPROM in the last 4 bytes. The first 2 bytes provide the internal reference voltage value (-1 means value is invalid). If the next byte is zero, then the stored OSCCAL calibration value stored in the last byte is valid.
 
@@ -28,19 +32,19 @@ Instead of using the EEPROM values, you can write down the values that are shown
 
 ### Hardware setup
 
-The simplest way to connect the server board to the target board is to use an ICSP cable. However, this works only if you plan to run the target board with the same supply voltage as the one used for the server board because the calibration is supply voltage dependent. Furthermore, if you source a target board with 5V and the board is not 5V tolerant, you may actually destroy it. 
+The simplest way to connect the server board to the target board is to use an ICSP cable. However, this works only if you plan to run the target board with the same supply voltage as the one used for the server board because the calibration is supply voltage dependent. Furthermore, if you source a target board with 5V and the board is not 5V tolerant, you may actually destroy the electronics on it. 
 
 In order to deal with this problem, you may want to consider to buy a server board with switchable supply voltage such as [Seeduino 4.3](https://www.seeedstudio.com/Seeeduino-V4-2-p-2517.html) or [Keyestudio 328 PLUS Board](https://wiki.keyestudio.com/KS0486_Keyestudio_PLUS_Development_Board_(Black_And_Eco-friendly)) in order to overcome this hurdle. 
 
-Alternatively, you can individually connect the MOSI, MISO, RESET, and GND pins on the ICSP connectors, and provide the target board with its own individual supply voltage. As long as it more than 3.3V, the target board will be able to talk to the server board. Further the 10 Hz signal  is generated as an open collector signal, where the pull-up voltage comes from the target board. If you plan to run the board with a lower supply voltage, you will need level shifters.
+Alternatively, you can individually connect the MOSI, MISO, SCK, RESET, and GND pins on the ICSP connectors, and provide the target board with its own individual supply voltage. As long as it is 3.3 V or more, the target board will be able to talk to the server board. Further the 10 Hz signal  is generated as an open collector signal, where the pull-up voltage comes from the target board. If you plan to run the target board with a lower supply voltage, you will need level shifters.
 
-Instead of connecting the pins individually, you may also build an ICSP cable, where the Vcc line is broken out so that it can be connected to either 5V or 3.3V on the server board. This could look like as in the following picture.
+Instead of connecting the pins individually, you may also build an ICSP cable, where the Vcc line is broken out so that it can be connected to either 5 V or 3.3 V on the server board. This could look like as in the following picture (where also the RESET line is broken out).
 
 ![ICSP cable with Vcc breakout](pics/ICSP.JPG)
 
 ### Hardware requirements
 
-The following boards can be used on the server side (the tested ones are in boldface):
+The following boards can be used on the server side:
 
 * Arduino UNO R3 (or similar),
 * Arduino Nano,
@@ -63,9 +67,10 @@ As targets, the following MCUs are supported. On MCUs with only 2K bytes flash m
 * ATtiny48, ATtiny88
 * ATtiny1634
 * ATmega48(P)(A/B), ATmega88(P)(A/B), ATmega168(P)(A/B), ATmega328(P)(B)
-* ATmega324(P), ATmega644(P), ATmega1284(P),     ATmega16, ATmega32, ATmega8535
+* ATmega324(P), ATmega644(P), ATmega1284(P),     
+* ATmega16, ATmega32, ATmega8535
 * ATmega1280, ATmega2560
 * ATmega32U4, ATmega16U4 (only internal reference voltage calibration)
 
-The ATtiny43U board that I own does not deliver meaningful data when one tries to measure Vcc. For this reason, it is not supported. The ATtinyX23 do not have a ADC, so Vcc cannot be measured. Finally, for the USB-MCUs ATmegaXU4, I am not aware of any Arduino core that supports using the RC-oscillator. So, only the internal reference voltage calibration is supported.
+The ATtiny43U board that I own does not deliver meaningful data when one tries to measure Vcc. For this reason, it is not supported. The ATtinyX23 do not have an ADC, so Vcc cannot be measured. Finally, for the USB-MCUs ATmegaXU4, I am not aware of any Arduino core that supports using the RC-oscillator. So, only internal reference voltage calibration is supported.
 

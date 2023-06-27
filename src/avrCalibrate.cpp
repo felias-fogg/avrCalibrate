@@ -13,6 +13,6 @@ void avrCalibrate::init(int osccal, int intref)
 
 void avrCalibrate::init(void)
 {
-  init(eeprom_read_byte((byte *)E2END-1) == 0 ? eeprom_read_byte((byte *)E2END) : NOOSCCAL,
-       (int)eeprom_read_word((* int)E2END-3));
+  init(eeprom_read_byte((byte *)(E2END-1)) == 0 ? eeprom_read_byte((byte *)E2END) : NOOSCCAL,
+       (int)eeprom_read_word((uint16_t *)EE_INTREF));
 }

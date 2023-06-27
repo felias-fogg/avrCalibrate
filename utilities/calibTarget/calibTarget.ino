@@ -1,7 +1,7 @@
 // This sketch can be used to calibrate the OSCCAL value (for getting
 // a more accurate system clock when using the RC oscillator) and the
 // bandgap reference voltage (for measuring, e.g., supply voltage). For the
-// frequency calibration, you need an UNO, Leonardo, Mega or similar
+// frequency calibration, you need an UNO, Nano, ProMini, Mega or similar
 // board, which generates a (reasonably) accurate 100 Hz signal.
 
 // The result of the calibration is stored in EEPROM. By default, the
@@ -17,7 +17,7 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "0.5.4" 
+#define VERSION "0.6.0" 
 
 //#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUEMILLIVOLT 5003 // the true voltage measured in mV
@@ -29,22 +29,17 @@
 #include <util/delay.h>
 
 #ifdef SPIE // if chip has an SPI module
-#define TXPIN MOSI
+#define TXPIN SCK
 #define FRQPIN MISO
+#define SIGPIN MOSI
 #else
-#define TXPIN MISO
+#define TXPIN SCK
 #define FRQPIN MOSI
+#define SIGPIN MISO
 #endif
 #define TXDELAY ((F_CPU / 1200)-15)/4 // means 1200 baud
 #define TXBITMSK digitalPinToBitMask(TXPIN)
 #define TXPORTREG portOutputRegister(digitalPinToPort(TXPIN))
-
-// The ATmega8 has a different nominal bandgap reference voltages
-#ifdef __AVR_ATmega8__ 
-#define DEFINTREF 1300
-#else
-#define DEFINTREF 1100
-#endif
 
 #define TIMEOUT (10000UL*(F_CPU/1000000UL))
 #define SUCCTHRES 3 // number of consecutive measurements to accept a level change
@@ -79,6 +74,7 @@
 #elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
 #define TCNT TCNT0
 #define TOV TOV0
+#define TCCR0CS TCCR0B
 #elif defined(__AVR_ATtiny26__)
 #define TCNT TCNT0
 #define TOV TOV0
@@ -145,8 +141,18 @@ long count;
 
 void setup(void)
 {
+  byte wait = 0;
+
+  
+  // wait for ready signal from server
+  pinMode(SIGPIN, INPUT_PULLUP);
+  
+  while (wait < 100) {
+    if (digitalRead(SIGPIN) == LOW) wait++;
+    else wait = 0;
+  }
+  
   // startup and greeting
-  _delay_ms(2000); // wait for serv er to start up
   digitalWrite(TXPIN, HIGH);
   pinMode(TXPIN, OUTPUT);
   pinMode(FRQPIN, INPUT_PULLUP);
@@ -157,8 +163,6 @@ void setup(void)
   TIMSK = 0; // disable millis interrupt
   TCCR0A = 0; // normal operation
 
-  eeprom_write_dword((unsigned long *)E2END-3, 0xFFFFFFFF);
-  
   // calibrate OSCCAL
   calOSCCAL();
 
@@ -172,12 +176,10 @@ void calOSCCAL(void)
 {
 #if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
   txstr(F("OSCCAL calibration not possible.\n\r"));
-  eeprom_write_byte((byte *)E2END, 0xFF);
-  eeprom_write_byte((byte *)E2END-1, 0xFF);  
+  eeprom_write_word((unsigned int *)(E2END-1),0xFFFF);
 #elif (F_CPU != 8000000) && (F_CPU != 1000000) 
   txstr(F("Unsupported clock frequency. Calibration only possible for 1 MHz and 8 MHz.\n\r"));
-  eeprom_write_byte((byte *)E2END, 0xFF);
-  eeprom_write_byte((byte *)E2END-1, 0xFF);
+  eeprom_write_word((unsigned int *)(E2END-1),0xFFFF);
 #else  
   int dir = 1;
   byte osccal;
@@ -211,8 +213,8 @@ void calOSCCAL(void)
   txstr(itoa(OSCCAL,valstr,16));
   txnl();
   osccal = OSCCAL;
-  eeprom_write_byte((byte *)E2END, osccal);
   eeprom_write_byte((byte *)E2END-1, 0);
+  eeprom_write_byte((byte *)E2END, osccal);
 #endif
 }
 
@@ -308,24 +310,27 @@ void calVcc(void)
   || defined(__AVR_ATtiny13__) // these do not support Vcc measuring
   txstr(F("\n\rMCU does not support measuring Vcc\n\r"));
 #else
-  long intref, volt, controlvolt;
-  volt = Vcc::measure(2000,DEFINTREF);
+  long intref, volt;
+#if FLASHEND >= 0x800
+  long controlvolt;
+#endif
+  volt = Vcc::measure(2000,DEFAULT_INTREF);
 #if FLASHEND >= 0x800
   txstr(F("\n\rTrue voltage (mV): "));
   txstr(itoa(TRUEMILLIVOLT,valstr,10));
   txstr(F("\n\rMeasured with default intref (mV): "));
   txstr(itoa(volt,valstr,10));
 #endif
-  intref = ((long)(DEFINTREF) * (long)(TRUEMILLIVOLT)) / volt;
+  intref = ((long)(DEFAULT_INTREF) * (long)(TRUEMILLIVOLT)) / volt;
   txstr(F("\n\rIntref: "));
   txstr(itoa(intref,valstr,10));
+#if FLASHEND >= 0x800
   controlvolt = Vcc::measure(1000,intref);
-  //#if FLASHEND >= 0x800
   txstr(F("\n\rMeasured (mV):     "));
   txstr(itoa(controlvolt,valstr,10));
   txstr(F("\n\r...done\n\r"));
-  //#endif
-  eeprom_write_word((unsigned *)E2END-3,intref);
+#endif
+  eeprom_write_word((unsigned int*)(E2END-3), intref);
 #endif
 }
 

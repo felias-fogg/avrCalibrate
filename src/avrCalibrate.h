@@ -14,6 +14,6 @@ class avrCalibrate {
  public:
   static void init(void);
   static void init(int osccal, int intref);
-}
+};
 
 #endif

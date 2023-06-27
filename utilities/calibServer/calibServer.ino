@@ -1,12 +1,12 @@
-// This sketch generates a 10 Hz signal on an Arduino Uno/Nano/ProMini/Leornado/Mega (or similar)
-// open drain pin using Timer1.
+// This sketch generates a 10 Hz signal on an Arduino Uno/Nano/ProMini/Mega (or similar)
+// open drain pin using Timer1. Additionally, it passes the 1200 baud output of a target board
+// to Serial.
 
-#define VERSION "0.5.4"
-
-#define PUSHPULL false
+#define VERSION "0.6.0"
 
 #define FREQPIN MISO
-#define TTYPIN MOSI
+#define TTYPIN SCK
+#define SIGPIN MOSI
 
 #if defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_DUEMILANOVE) || defined(ARDUINO_AVR_NANO) \
   || defined(ARDUINO_AVR_MEGA) || defined(ARDUINO_AVR_MEGA2560)  \
@@ -14,6 +14,9 @@
 #else
 #error "Board not supported"
 #endif
+
+
+#define PUSHPULL false
 
 #include <SoftwareSerial.h>
 
@@ -35,11 +38,10 @@ ISR(TIMER1_COMPA_vect)
 
 void setup(void)
 {
-  while (!Serial);
+  pinMode(SCK,INPUT);
   Serial.begin(115200);
   ser.begin(1200);
-  Serial.println(F("\n\rcalibServer V " VERSION));
-  Serial.println(F("Feedback from target board:"));
+  Serial.println(F("\n\rcalibServer V " VERSION "\n\r"));
   TIMSK0 = 0; // stop the millis interrupt in order to avoid glitches
   // setup Timer1 in mode 11 
   TCCR1A = 0b11; // WGM11 = WGM10 = 1, no output
@@ -49,11 +51,18 @@ void setup(void)
 #if PUSHPULL
   pinMode(FREQPIN, OUTPUT);
 #endif
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
+  Serial.println(F("Press any key to start: "));
+  while (!Serial.available());
+  Serial.println(F("\n\rFeedback from target board:"));
+  pinMode(SIGPIN, OUTPUT);
+  digitalWrite(SIGPIN, LOW);
 }
 
 void loop(void)
 {
-  if (ser.available()) Serial.print((char)ser.read());
+  char c;
+  if (ser.available()) {
+    c = ser.read();
+    if (c > 0) Serial.print(c);
+  }
 }
