@@ -95,3 +95,7 @@ V0.6.3 (27.07.2023)
 
 V1.0.0 (27.06.2023)
 - first public release
+
+V1.0.1  (27.06.2023)
+- moved utility folder to extras in order to be compliant with the
+  Arduino library rules
