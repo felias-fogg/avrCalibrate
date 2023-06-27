@@ -83,3 +83,5 @@ V0.6.1 (27.07.2023)
 - fixed typos in readme
 - new workflows
 
+V0.6.2 (28.07.2023)
+- fixed problem in init for ATtinyX313
