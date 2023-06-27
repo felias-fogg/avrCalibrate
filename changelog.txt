@@ -90,3 +90,4 @@ V0.6.3 (28.07.2023)
 - fixed problem in setup_* for ATtinyX313 (never call Vcc:measure!)
 - fixed problem in setup_* for all MCUs using OSCCAL0
 - fixed the same problem in avrCalibrate.cpp
+

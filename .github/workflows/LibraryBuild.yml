@@ -55,6 +55,11 @@ jobs:
           - ATTinyCore:avr:attinyx61:chip=861
           - ATTinyCore:avr:attinyx7:chip=87
           - ATTinyCore:avr:attinyx7:chip=167
+          - ATTinyCore:avr:attinyx8:chip=48
+          - ATTinyCore:avr:attinyx8:chip=88
+          - ATTinyCore:avr:attiny828
+          - ATTinyCore:avr:attiny1634
+
 
         # Choose the right platform for the boards we want to test. (maybe in the future Arduino will automatically do this for you)
         # With sketches-exclude you may exclude specific examples for a board. Use a comma separated list.
@@ -131,6 +136,22 @@ jobs:
             sketches-exclude: calibServer
 
           - arduino-boards-fqbn: ATTinyCore:avr:attinyx7:chip=167
+            platform-url: http://drazzy.com/package_drazzy.com_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: ATTinyCore:avr:attinyx8:chip=48
+            platform-url: http://drazzy.com/package_drazzy.com_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: ATTinyCore:avr:attinyx8:chip=88
+            platform-url: http://drazzy.com/package_drazzy.com_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: ATTinyCore:avr:attiny828
+            platform-url: http://drazzy.com/package_drazzy.com_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: ATTinyCore:avr:attiny1634
             platform-url: http://drazzy.com/package_drazzy.com_index.json
             sketches-exclude: calibServer
 
