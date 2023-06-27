@@ -128,11 +128,12 @@
 #define TIFR TIFR0
 #define TOV TOV0
 #define TCCR0CS TCCR0B
-#elif defined(__AVR_ATmega8__) ||   defined(__AVR_ATmega8A__) 
+#elif defined(__AVR_ATmega16__) ||   defined(__AVR_ATmega32__) || defined(__AVR_ATmega8535__) || \
+   defined(__AVR_ATmega8__) ||   defined(__AVR_ATmega8A__) 
 #define TCNT TCNT0
 #define TOV TOV0
 #define TCCR0CS TCCR0
-#define TCCR0A  TCCR0
+#define TCCR0A TCCR0
 #else
 #error "Unsupported MCU"
 #endif
