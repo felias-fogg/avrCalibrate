@@ -85,3 +85,7 @@ V0.6.1 (27.07.2023)
 
 V0.6.2 (28.07.2023)
 - fixed problem in init for ATtinyX313
+
+V0.6.3 (28.07.2023)
+- fixed problem in setup_* for ATtinyX313 (never call Vcc:measure!)
+- fixed problem in setup_* for all MCUs using OSCCAL0

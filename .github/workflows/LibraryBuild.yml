@@ -86,7 +86,7 @@ jobs:
             platform-url: http://drazzy.com/package_drazzy.com_index.json
             sketches-exclude: calibServer
 
-          - arduino-boards-fqbn: ATTinyCore:avr:attinyx41:chip=84
+          - arduino-boards-fqbn: ATTinyCore:avr:attinyx4:chip=84
             platform-url: http://drazzy.com/package_drazzy.com_index.json
             sketches-exclude: calibServer
 
@@ -94,7 +94,7 @@ jobs:
             platform-url: http://drazzy.com/package_drazzy.com_index.json
             sketches-exclude: calibServer
 
-          - arduino-boards-fqbn: ATTinyCore:avr:attinyx4:chip=841
+          - arduino-boards-fqbn: ATTinyCore:avr:attinyx41:chip=841
             platform-url: http://drazzy.com/package_drazzy.com_index.json
             sketches-exclude: calibServer
 
