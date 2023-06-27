@@ -62,6 +62,15 @@ jobs:
           - MiniCore:avr:328:variant=modelNonP
           - MiniCore:avr:328:variant=modelP
           - MiniCore:avr:328:variant=modelPB
+          - MiniCore:avr:168:variant=modelNonP
+          - MiniCore:avr:168:variant=modelP
+          - MiniCore:avr:168:variant=modelPB
+          - MiniCore:avr:88:variant=modelNonP
+          - MiniCore:avr:88:variant=modelP
+          - MiniCore:avr:88:variant=modelPB
+          - MiniCore:avr:48:variant=modelNonP
+          - MiniCore:avr:48:variant=modelP
+          - MiniCore:avr:48:variant=modelPB
 
 
         # Choose the right platform for the boards we want to test. (maybe in the future Arduino will automatically do this for you)
@@ -167,6 +176,42 @@ jobs:
             sketches-exclude: calibServer
 
           - arduino-boards-fqbn: MiniCore:avr:328:variant=modelPB
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:168:variant=modelNonP
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:168:variant=modelP
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:168:variant=modelPB
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:88:variant=modelNonP
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:88:variant=modelP
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:88:variant=modelPB
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:48:variant=modelNonP
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:48:variant=modelP
+            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            sketches-exclude: calibServer
+
+          - arduino-boards-fqbn: MiniCore:avr:48:variant=modelPB
             platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
             sketches-exclude: calibServer
   
