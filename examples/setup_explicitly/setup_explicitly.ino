@@ -16,6 +16,11 @@
 #define SIGPIN MISO
 #endif
 
+#if defined(__AVR_ATtiny441__) || defined(__AVR_ATtiny841__) || defined(__AVR_ATtiny828__) || defined(__AVR_ATtiny1634__) 
+#define OSCCAL OSCCAL0
+#endif
+
+
 SoftwareSerial ser(RXPIN, TXPIN);
 
 void setup(void)
@@ -28,13 +33,19 @@ void setup(void)
   ser.begin(1200);
   ser.print(F("Original OSCCAL: 0x"));
   ser.println(OSCCAL,HEX);
+#if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \
+  && !defined(__AVR_ATtiny13__) // these do not support Vcc measuring
   ser.print(F("Original Vcc measurement (mV): "));
   ser.println(Vcc::measure(100,DEFAULT_INTREF));
+#endif
   avrCalibrate::init(OSCCAL+2, DEFAULT_INTREF-100);
   ser.print(F("New OSCCAL: 0x"));
   ser.println(OSCCAL,HEX);
+#if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \
+  && !defined(__AVR_ATtiny13__) // these do not support Vcc measuring
   ser.print(F("New Vcc measurement (mV) with DEFAULT_INTREF-100: "));
   ser.println(Vcc::measure(100));
+#endif
 }
 
 void loop(void) { }
