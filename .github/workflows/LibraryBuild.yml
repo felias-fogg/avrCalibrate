@@ -49,7 +49,7 @@ jobs:
           - ATTinyCore:avr:attinyx5:chip=25,millis=disabled
           - ATTinyCore:avr:attinyx5:chip=45
           - ATTinyCore:avr:attinyx5:chip=85
-	  # - ATTinyCore:avr:attiny26 # only supported in 2.0.0
+          # - ATTinyCore:avr:attiny26 # only supported in 2.0.0
           - ATTinyCore:avr:attinyx61:chip=261,millis=disabled
           - ATTinyCore:avr:attinyx61:chip=461
           - ATTinyCore:avr:attinyx61:chip=861
