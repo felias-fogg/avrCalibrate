@@ -99,3 +99,11 @@ V1.0.0 (27.06.2023)
 V1.0.1  (27.06.2023)
 - moved utility folder to extras in order to be compliant with the
   Arduino library rules
+
+V1.1.0
+- added ATtiny13 (with a really stripped down output and no error
+  checking)
+
+V1.1.1
+- had to add ATtiny13 conditionals in the init function in order to avoid getting an error from the
+  Vcc library

@@ -17,7 +17,7 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "1.1.0" 
+#define VERSION "1.1.1" 
 
 //#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUEMILLIVOLT 5003 // the true voltage measured in mV
