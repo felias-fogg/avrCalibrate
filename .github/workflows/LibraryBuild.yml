@@ -38,7 +38,7 @@ jobs:
         arduino-boards-fqbn:
           - arduino:avr:uno
           - arduino:avr:mega
-          - MicroCore:avr:13:timing=micros_disabled
+          - MicroCore:avr:13
           # - ATTinyCore:avr:attiny43u # does not work yet (Vcc gives wrong values)
           - ATTinyCore:avr:attinyx313:chip=2313,millis=disabled
           - ATTinyCore:avr:attinyx313:chip=4313
@@ -99,7 +99,7 @@ jobs:
           #   platform-url: http://drazzy.com/package_drazzy.com_index.json
           #   sketches-exclude: calibServer
 
-          - arduino-boards-fqbn: MicroCore:avr:13:timing=micros_disabled
+          - arduino-boards-fqbn: MicroCore:avr:13
             platform-url: https://mcudude.github.io/MicroCore/package_MCUdude_MicroCore_index.json
             sketches-exclude: calibServer, setup_from_eeprom, setup_explicitly
 
