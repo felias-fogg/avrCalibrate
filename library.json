@@ -1,6 +1,6 @@
 {
     "name": "avrCalibrate",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "keywords": "calibration, internal reference voltage, MCU clock, OSCCAL",
     "description": "Supports calibration of OSCCAL value and internal reference voltage and supports setting them at startup",
     "repository":

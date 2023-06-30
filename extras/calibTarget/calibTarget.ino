@@ -17,7 +17,7 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "1.1.1" 
+#define VERSION "1.1.2" 
 
 //#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUEMILLIVOLT 5003 // the true voltage measured in mV
@@ -49,6 +49,11 @@
 #define SUCCTHRES 3 // number of consecutive measurements to accept a level change
 #define MIN_CHANGE 100
 
+#if defined(__AVR_ATtiny13__) || defined(__AVR_ATtiny13A__)
+#define MAXOSCCAL 0x7F
+#else
+#define MAXOSCCAL 0x7FF
+#endif
 
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \
   && !defined(__AVR_ATtiny13__) && !defined(__AVR_ATtiny13A__) // these do not support Vcc measuring
@@ -156,7 +161,7 @@ char valstr[16];
 #else
 char valstr[7];
 #endif
-long ticks[5];
+long ticks[5] = {0,0,0,0,0};
 long count;
 
 void setup(void)
@@ -212,17 +217,18 @@ void calOSCCAL(void)
   txstr(itoa(OSCCAL,valstr,16));
 #endif
 
-  for (byte i=0; i<5; i++) ticks[i] = 0;
   ticks[0] = measure();
-  if (!ticksOK(ticks)) return;
+#if FLASHEND >= 0x400
+  if (!ticksOK()) return;
+#endif
   if (ticks[0] > TRUETICKS) dir = -1;
   do {
     reportMeasurement();
     OSCCAL = OSCCAL + dir;
     shiftTicks();
     ticks[0] = measure();
-    if (!ticksOK(ticks)) return;
-  } while ((ticks[0] < TRUETICKS && dir == 1 && OSCCAL != 0xFF) || (ticks[0] >= TRUETICKS && dir == -1 && OSCCAL != 0));
+    if (!ticksOK()) return;
+  } while ((ticks[0] < TRUETICKS && dir == 1 && OSCCAL != MAXOSCCAL) || (ticks[0] >= TRUETICKS && dir == -1 && OSCCAL != 0));
   reportMeasurement();
   shiftTicks();
   OSCCAL = OSCCAL + dir;
@@ -302,26 +308,28 @@ bool waitTransTo(boolean level)
 }
 
 
-boolean ticksOK(long t[5])
+boolean ticksOK(void)
 {
-#if FLASHEND >= 0x400
-  if (t[0] < 0) {
+  if (ticks[0] < 0) {
 #if FLASHEND >= 0x0800
     txstr(F("\n\rOSCCAL calib. timeout\n\r"));
-#else
+#elif FLASHEND >= 0x400
     txstr("\n\rtimeout\n\r");
+#else
+    txchar('-');    
 #endif    
     return false;
   }
-  if ((abs(t[0]-t[1]) < MIN_CHANGE) && (abs(t[1]-t[2]) < MIN_CHANGE) && (abs(t[0]-t[2]) < MIN_CHANGE)) {
+  if ((abs(ticks[0]-ticks[1]) < MIN_CHANGE) && (abs(ticks[1]-ticks[2]) < MIN_CHANGE) && (abs(ticks[0]-ticks[2]) < MIN_CHANGE)) {
 #if FLASHEND >= 0x0800
     txstr(F("\n\rOSCCAL calib. impossible\n\r"));
-#else
+#elif FLASHEND >= 0x400
     txstr("\n\rNo change!\n\r");
+#else
+    txchar('*');
 #endif    
     return false;
   }
-#endif
   return true;
 }
 

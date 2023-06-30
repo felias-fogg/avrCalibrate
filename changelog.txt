@@ -100,11 +100,15 @@ V1.0.1  (27.06.2023)
 - moved utility folder to extras in order to be compliant with the
   Arduino library rules
 
-V1.1.0
+V1.1.0 (30.06.2023)
 - added ATtiny13 (with a really stripped down output and no error
   checking)
 
-V1.1.1
+V1.1.1 (30.06.2023)
 - had to add ATtiny13 conditionals in the init function in order to avoid getting an error from the
   Vcc library
 - and it had to be added to avrCalibrate.h as well (sigh)
+
+V1.1.2 (30.06.2023)
+- added some error detection for ATiny13 calibration
+- added a trouble shooting section to the readme
