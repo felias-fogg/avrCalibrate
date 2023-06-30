@@ -6,7 +6,8 @@
 
 #include <Arduino.h>
 #include <avr/eeprom.h>
-#if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__)
+#if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) && \
+  !defined(__AVR_ATtiny13__) && !defined(__AVR_ATtiny13A__)
 #include <Vcc.h>
 #endif
 

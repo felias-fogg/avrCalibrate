@@ -107,3 +107,4 @@ V1.1.0
 V1.1.1
 - had to add ATtiny13 conditionals in the init function in order to avoid getting an error from the
   Vcc library
+- and it had to be added to avrCalibrate.h as well (sigh)
