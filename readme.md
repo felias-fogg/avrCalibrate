@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)[![Installation instructions](https://www.ardu-badge.com/badge/avrCalibrate.svg?)](https://www.ardu-badge.com/avrCalibrate)[![Build Status](https://github.com/felias-fogg/avrCalibrate/workflows/LibraryBuild/badge.svg)](https://github.com/felias-fogg/avrCalibrate/actions)
 ![Hit Counter](https://visitor-badge.laobi.icu/badge?page_id=felias-fogg_avrCalibrate)
 
-This library contains just one function to set user calibration values in a (classic) AVR MCU and two sketches that can be used to determine the calibration values by connecting a target board with an Arduino UNO (or a similar board) using an ICSP cable. It depends on the [*Vcc* library](https://github.com/felias-fogg/Vcc), which you need to install as well (using the library manager or download it from GitHub).
+This library contains just one function to set user calibration values in a (classic) AVR MCU and two sketches that can be used to determine the calibration values by connecting a target board to an Arduino UNO (or a similar board) using an ICSP cable. It depends on the [*Vcc* library](https://github.com/felias-fogg/Vcc), which you need to install as well (either by using the library manager or by downloading it from GitHub).
 
 ### Purpose
 
@@ -16,13 +16,15 @@ If you want to use only one of the values, then you still could use this functio
 
 ### Calibration process
 
-The predetermined calibration values can either be stored in EEPROM or can be provided as constant values. The tricky part is, of course, to determine these calibration values. For that purpose, two Arduino sketches are provided in the `extras` folder. The `calibTarget` sketch needs to be loaded to the target board using a programmer. Before you do that, you need to adjust the compile-time constant `TRUEMILLIVOLT` to the true supply voltage of the target board (which should be measured using an accurate Multimeter). Next you need to upload the `calibServer` sketch to an Arduino UNO or similar board that uses a ceramic resonator or crystal. It generates a reasonably accurate 10 Hz signal that is used to calibrate the `OSCCAL` value on the target board. 
+The predetermined calibration values can either be stored in EEPROM or can be provided as constant values. The tricky part is, of course, to determine these calibration values. For that purpose, two Arduino sketches are provided in the `extras` folder. The `calibTarget` sketch needs to be loaded to the target board using a programmer. Before you do that, you need to adjust the compile-time constant `TRUEMILLIVOLT` to the true supply voltage of the target board (which should be measured using an accurate Multimeter). When you upload the sketch, make sure that you have selected 1 or 8 MHz clock frequency (1.2 or 9.6 MHz for the ATtiny13) generated internally. Otherwise the calibration will not work. Further disable the millis/micros interrupt when you target MCU has 2K Byte or less flash memory.
+
+Next you need to upload the `calibServer` sketch to an Arduino UNO or similar board that uses a ceramic resonator or crystal. It generates a reasonably accurate 10 Hz signal that is used to calibrate the `OSCCAL` value on the target board. 
 
 You then need to connect the two boards using an ICSP cable (see below). Now open the monitor window and set the baud rate to 115200. After pressing the `RESET` button on the server board, which will also reset the target board, the calibration can be started by pressing a key. This could look like as in the following picture. 
 
 ![](pics/calibServer.png)
 
-It starts with the OSCCAL calibration by systematically changing the OSCCAL value and stopping once the best value (close to 100000) has been determined. Afterwards, the correct internal reference voltage is determined. Note that both values are temperature dependent and should be performed in an environment similar to where the target board will be deployed. Furthermore, one should either give the MCU some time (1 minute) to reach its operating temperature or perform 5 or so calibration runs until the results stabilize (in particular the voltage calibration). 
+It starts with the OSCCAL calibration by systematically changing the OSCCAL value and stopping once the best value (close to 100000) has been determined. Afterwards, the correct internal reference voltage is determined. Note that both values are supply voltage and temperature dependent and should be performed in an environment similar to where the target board will be deployed. Furthermore, one should either give the MCU some time (1 minute) to reach its operating temperature or perform 5 or so calibration runs until the results stabilize (in particular the voltage calibration). 
 
 The calibration values will be stored in EEPROM in the last 4 bytes. The first 2 bytes provide the internal reference voltage value (-1 means value is invalid). If the next byte is zero, then the stored OSCCAL calibration value stored in the last byte is valid.
 
@@ -39,7 +41,7 @@ The simplest way to connect the server board to the target board is to use an IC
 
 In order to deal with this problem, you may want to consider to buy a server board with switchable supply voltage such as [Seeduino 4.3](https://www.seeedstudio.com/Seeeduino-V4-2-p-2517.html) or [Keyestudio 328 PLUS Board](https://wiki.keyestudio.com/KS0486_Keyestudio_PLUS_Development_Board_(Black_And_Eco-friendly)) in order to overcome this hurdle. 
 
-Alternatively, you can individually connect the MOSI, MISO, SCK, RESET, and GND pins on the ICSP connectors, and provide the target board with its own individual supply voltage. As long as it is 3.3 V or more, the target board will be able to talk to the server board. Further the 10 Hz signal  is generated as an open collector signal, where the pull-up voltage comes from the target board. If you plan to run the target board with a lower supply voltage, you will need level shifters.
+Alternatively, you can individually connect the MOSI, MISO, SCK, RESET, and GND pins on the ICSP connectors, and provide the target board with its own individual supply voltage. As long as it is 3.3 V or more, the target board will be able to talk to the server board. Further the 10 Hz signal  is generated as an open collector signal, where the pull-up voltage comes from the target board. If you plan to run the target board with a lower supply voltage than 3.3 V, you will need level shifters.
 
 Instead of connecting the pins individually, you may also build an ICSP cable, where the Vcc line is broken out so that it can be connected to either 5 V or 3.3 V on the server board. This could look like as in the following picture (where also the RESET line is broken out).
 
@@ -54,12 +56,13 @@ The following boards can be used on the server side:
 * Arduino Pro Mini,
 * Arduino Mega(2560).
 
-As mentioned above, their clock frequency should be supplied by a reasonable accurate ceramic resonator or, even better, by a quartz crystal. If using a resonator, you may want to measure the 10 Hz signal at the MISO pin for accuracy. If it is more than 0.5 % off, you should adjust the compile-time constant `TRUETICKS` in the `calibTarget` sketch.
+As mentioned above, their clock frequency should be supplied by a reasonably accurate ceramic resonator or, even better, by a quartz crystal. If using a resonator, you may want to measure the 10 Hz signal at the MISO pin for accuracy. If it is more than 0.5 % off, you should adjust the compile-time constant `TRUETICKS` in the `calibTarget` sketch.
 
-As targets, the following MCUs are supported. On MCUs with only 2K bytes flash memory, the target sketch is less verbose than on the larger MCUs. With these MCUs, it is also necessary to disable the `millis`/`micros` code in order to save some flash memory. Otherwise the sketch is too large.
+As targets, the following MCUs are supported. On MCUs with only 2K bytes or less flash memory, the target sketch is less verbose than on the larger MCUs. With these MCUs, it is also necessary to disable the `millis`/`micros` code in order to save some flash memory. Otherwise the sketch is too large.
 
-* ~~ATtiny43U~~
+* ATtiny13 (only `OSCCAL` calibration)
 * ATtiny2313(A), ATtiny4313 (only `OSCCAL` calibration)
+* ~~ATtiny43U~~
 * ATtiny24(A), ATtiny44(A), ATtiny84(A)
 * ATtiny441, ATtiny841
 * ATtiny25, ATtiny45, ATtiny85
@@ -71,9 +74,9 @@ As targets, the following MCUs are supported. On MCUs with only 2K bytes flash m
 * ATtiny1634
 * ATmega48(P)(A/B), ATmega88(P)(A/B), ATmega168(P)(A/B), ATmega328(P)(B)
 * Atmega8(A)
-* ATmega324(P), ATmega644(P), ATmega1284(P),     
+* ATmega164(P), ATmega324(P), ATmega644(P), ATmega1284(P),     
 * ATmega8535, ATmega16, ATmega32
 * ATmega1280, ATmega2560
 * ATmega32U4, ATmega16U4 (only internal reference voltage calibration)
 
-The ATtiny43U board that I own does not deliver meaningful data when one tries to measure Vcc. For this reason, it is not supported. The ATtinyX23 do not have an ADC, so Vcc cannot be measured. Finally, for the USB-MCUs ATmegaXU4, I am not aware of any Arduino core that supports using the RC-oscillator. So, only internal reference voltage calibration is supported.
+The ATtiny43U board that I own does not deliver meaningful data when one tries to measure Vcc. For this reason, it is not supported. ATtinyX23 do not have an ADC. The ATtiny13 has an ADC, but you cannot connect the internal reference voltage to the ADC. So, in these two cases, one cannot measure Vcc. Finally, for the USB-MCUs ATmegaXU4, I am not aware of any Arduino core that supports using the RC-oscillator. So, only internal reference voltage calibration is supported.

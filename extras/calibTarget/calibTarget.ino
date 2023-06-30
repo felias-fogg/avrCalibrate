@@ -12,23 +12,27 @@
 // SCK line using 1200 baud.
 
 // The MOSI line is used as the input for the 100 Hz signal
-// In case of F_CPU==8000000, we use a prescaler of 8, otherwise 1. Since
+// In case of F_CPU==8000000 or 9600000, we use a prescaler of 8, otherwise 1. Since
 // the input frequency is 100 Hz and we stop counting after 10 periods,
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "1.0.1" 
+#define VERSION "1.1.0" 
 
 //#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUEMILLIVOLT 5003 // the true voltage measured in mV
+#if (F_CPU == 1000000) || (F_CPU == 8000000)
 #define TRUETICKS 100000 // the true number of micro secs between two negative edges
+#elif  (F_CPU == 1200000) || (F_CPU == 9600000)
+#define TRUETICKS 120000
+#endif
 
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 #include <util/delay_basic.h>
 #include <util/delay.h>
 
-#ifdef SPIE // if chip has an SPI module
+#if defined(SPIE) || defined(__AVR_ATtiny13__) || defined(__AVR_ATtiny13A__) // if chip has an SPI module or is the ATtiny13
 #define TXPIN SCK
 #define FRQPIN MISO
 #define SIGPIN MOSI
@@ -47,11 +51,17 @@
 
 
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \
-  && !defined(__AVR_ATtiny13__) // these do not support Vcc measuring
+  && !defined(__AVR_ATtiny13__) && !defined(__AVR_ATtiny13A__) // these do not support Vcc measuring
 #include <Vcc.h>
 #endif
 
-#if defined(__AVR_ATtiny43U__)
+#if defined(__AVR_ATtiny13__) || defined(__AVR_ATtiny13A__)
+#define TIMSK TIMSK0
+#define TCNT TCNT0
+#define TIFR TIFR0
+#define TOV TOV0
+#define TCCR0CS TCCR0B
+#elif defined(__AVR_ATtiny43U__)
 #error "Unsupported MCU"
 #elif defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny4313__)
 #define TCNT TCNT0
@@ -141,7 +151,11 @@
 
 unsigned long wait;
 int dir = 0;
+#if RAMEND >= 0xA0
 char valstr[16];
+#else
+char valstr[7];
+#endif
 long ticks[5];
 long count;
 
@@ -152,7 +166,7 @@ void setup(void)
   
   // wait for ready signal from server
   pinMode(SIGPIN, INPUT_PULLUP);
-  
+
   while (wait < 100) {
     if (digitalRead(SIGPIN) == LOW) wait++;
     else wait = 0;
@@ -183,14 +197,20 @@ void calOSCCAL(void)
 #if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
   txstr(F("OSCCAL calibration not possible.\n\r"));
   eeprom_write_word((unsigned int *)(E2END-1),0xFFFF);
-#elif (F_CPU != 8000000) && (F_CPU != 1000000) 
-  txstr(F("Unsupported clock frequency. Calibration only possible for 1 MHz and 8 MHz.\n\r"));
+#elif (F_CPU != 8000000) && (F_CPU != 1000000) && (F_CPU != 9600000) && (F_CPU != 1200000)
+  txstr(F("Unsupported clock frequency. Calibration only possible for 1, 1.2, 8 and 9.6 MHz.\n\r"));
   eeprom_write_word((unsigned int *)(E2END-1),0xFFFF);
 #else  
   int dir = 1;
   byte osccal;
   long mindiff = TRUETICKS;
   int minix = 0;
+
+#if FLASHEND < 0x400
+  txchar('0');
+  txchar('x' );
+  txstr(itoa(OSCCAL,valstr,16));
+#endif
 
   for (byte i=0; i<5; i++) ticks[i] = 0;
   ticks[0] = measure();
@@ -215,7 +235,12 @@ void calOSCCAL(void)
     }
   }
   OSCCAL = OSCCAL + -1*dir*minix;
+#if FLASHEND >= 0x0400
   txstr(F("\n\rFinal OSCCAL: 0x"));
+#else
+  txchar('0');
+  txchar('x' );
+#endif
   txstr(itoa(OSCCAL,valstr,16));
   txnl();
   osccal = OSCCAL;
@@ -232,8 +257,8 @@ void shiftTicks(void)
 // perform measurement, i.e. count ten periods
 long measure(void)
 {
-  _delay_ms(100); // let frequency change settle and wait for I/O being finished
-  TCCR0CS = (F_CPU == 8000000) ? 0b010 : 0b001; // WGM02=0, prescaler == 8 if 8 MHz, otherwise =1
+  _delay_ms(300); // let frequency change settle and wait for I/O being finished
+  TCCR0CS = ((F_CPU == 8000000) || (F_CPU == 9600000)) ? 0b010 : 0b001; // WGM02=0, prescaler == 8 if 8 MHz, otherwise =1
   // wait for first falling edge
   if (!fallingEdge()) return -1; 
   count = 0;
@@ -279,6 +304,7 @@ bool waitTransTo(boolean level)
 
 boolean ticksOK(long t[5])
 {
+#if FLASHEND >= 0x400
   if (t[0] < 0) {
 #if FLASHEND >= 0x0800
     txstr(F("\n\rOSCCAL calib. timeout\n\r"));
@@ -295,26 +321,35 @@ boolean ticksOK(long t[5])
 #endif    
     return false;
   }
+#endif
   return true;
 }
 
 void reportMeasurement(void)
 {
+#if FLASHEND >= 0x0400
 #if FLASHEND >= 0x0800
   txstr(F("\n\rOSCCAL: 0x"));
 #else
-  txstr("\n\r0x");
+  txchar('\n');
+  txchar('\r');
+  txchar('0');
+  txchar('x');
 #endif
   txstr(itoa(OSCCAL,valstr,16));
   txstr(F(",  ticks: "));
   txstr(ltoa(ticks[0],valstr,10));
+#else
+  txchar('.');
+#endif
 }  
 
 void calVcc(void)
 {
-#if defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny4313__) \
-  || defined(__AVR_ATtiny13__) // these do not support Vcc measuring
+#if defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny4313__) 
   txstr(F("\n\rMCU does not support measuring Vcc\n\r"));
+#elif defined(__AVR_ATtiny13__)  || defined(__AVR_ATtiny13A__)
+  // these also do not support Vcc measuring - but we won't say anything
 #else
   long intref, volt;
 #if FLASHEND >= 0x800
