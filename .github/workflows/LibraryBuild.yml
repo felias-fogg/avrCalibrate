@@ -100,7 +100,7 @@ jobs:
           #   sketches-exclude: calibServer
 
           - arduino-boards-fqbn: MicroCore:avr:13:timing=micros_disabled
-            platform-url: https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+            platform-url: https://mcudude.github.io/MicroCore/package_MCUdude_MicroCore_index.json
             sketches-exclude: calibServer, setup_from_eeprom, setup_explicitly
 
           - arduino-boards-fqbn: ATTinyCore:avr:attinyx313:chip=2313,millis=disabled
