@@ -17,7 +17,7 @@
 // a fully calibrated clock will give us 100000 counts.
 
 
-#define VERSION "1.1.2" 
+#define VERSION "1.1.3" 
 
 //#define TRUEMILLIVOLT 3309 // the true voltage measured in mV
 #define TRUEMILLIVOLT 5003 // the true voltage measured in mV
@@ -49,10 +49,11 @@
 #define SUCCTHRES 3 // number of consecutive measurements to accept a level change
 #define MIN_CHANGE 100
 
-#if defined(__AVR_ATtiny13__) || defined(__AVR_ATtiny13A__)
+#if defined(__AVR_ATtiny13__) || defined(__AVR_ATtiny13A__) || \
+  defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny2313A__) || defined(__AVR_ATtiny4313__)
 #define MAXOSCCAL 0x7F
 #else
-#define MAXOSCCAL 0x7FF
+#define MAXOSCCAL 0xFF
 #endif
 
 #if !defined(__AVR_ATtiny2313__) && !defined(__AVR_ATtiny2313A__) && !defined(__AVR_ATtiny4313__) \

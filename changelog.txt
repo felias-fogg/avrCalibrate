@@ -112,3 +112,7 @@ V1.1.1 (30.06.2023)
 V1.1.2 (30.06.2023)
 - added some error detection for ATiny13 calibration
 - added a trouble shooting section to the readme
+
+V1.1.3 (01.07.2023)
+- fixed the value of MAXOSCCAL
+
