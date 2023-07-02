@@ -87,7 +87,7 @@ As targets, the following MCUs are supported. On MCUs with only 2K bytes or less
 * ATmega1280, ATmega2560
 * ATmega32U4, ATmega16U4 (only internal reference voltage calibration)
 
-The ATtiny43U board that I own does not deliver meaningful data when one tries to measure Vcc. For this reason, it is not supported. The ATtinyX23s do not have an ADC. The ATtiny13 has an ADC, but you cannot connect the internal reference voltage to the ADC. So, in these two cases, one cannot measure Vcc. Finally, for the USB-MCUs ATmegaXU4, I am not aware of any Arduino core that supports using the RC-oscillator. So, only internal reference voltage calibration is supported.c
+The ATtiny43U board that I own does not deliver meaningful data when one tries to measure Vcc. For this reason, it is not supported. The ATtinyX13s do not have an ADC. The ATtiny13 has an ADC, but you cannot connect the internal reference voltage to the ADC. So, in these two cases, one cannot measure Vcc. Finally, for the USB-MCUs ATmegaXU4, I am not aware of any Arduino core that supports using the RC-oscillator. So, only internal reference voltage calibration is supported.c
 
 ### Trouble shooting
 
