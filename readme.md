@@ -4,6 +4,7 @@
 [![Build Status](https://github.com/felias-fogg/avrCalibrate/workflows/LibraryBuild/badge.svg)](https://github.com/felias-fogg/avrCalibrate/actions)
 ![Hit Counter](https://visitor-badge.laobi.icu/badge?page_id=felias-fogg_avrCalibrate)
 
+
 This library contains just one function to set user calibration values in a (classic) AVR MCU and two sketches that can be used to determine the calibration values by connecting a target board to an Arduino UNO (or a similar board) using an ICSP cable. It depends on the [*Vcc* library](https://github.com/felias-fogg/Vcc), which you need to install as well (either by using the library manager or by downloading it from GitHub).
 
 ### Purpose
